@@ -85,17 +85,20 @@ function PhotoCard({ photo }: { photo: PhotoRecord }) {
 
         {hasGPS ? (
           <>
-            <div className="flex items-center gap-1.5 text-xs text-green-400">
+            <a
+              href={`https://www.google.com/maps?q=${photo.latitude},${photo.longitude}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1.5 text-xs text-green-400 hover:text-green-300 transition-colors"
+            >
               <MapPin className="w-3 h-3 shrink-0" />
-              <span className="font-mono">
-                {photo.latitude!.toFixed(5)}, {photo.longitude!.toFixed(5)}
-              </span>
+              <span>Ver ubicación en mapa</span>
               {photo.accuracy && (
                 <span className="text-slate-500">
                   ±{Math.round(photo.accuracy)}m
                 </span>
               )}
-            </div>
+            </a>
             <StaticMap lat={photo.latitude!} lng={photo.longitude!} />
           </>
         ) : (
