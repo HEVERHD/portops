@@ -4,6 +4,36 @@ import { useState, useRef, useEffect } from "react"
 import { Camera, Loader2, MapPin, X, AlertCircle, ImageIcon } from "lucide-react"
 import Image from "next/image"
 
+// ─── Compresión de imagen en cliente ─────────────────────────────────────────
+// Redimensiona a máx 1920px y convierte a JPEG 85% antes de subir.
+// Evita errores de memoria en Android con fotos de alta resolución.
+
+async function compressImage(file: File, maxWidth = 1920, quality = 0.85): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const img = document.createElement("img")
+    const url = URL.createObjectURL(file)
+    img.onload = () => {
+      let { width, height } = img
+      if (width > maxWidth) {
+        height = Math.round((height * maxWidth) / width)
+        width = maxWidth
+      }
+      const canvas = document.createElement("canvas")
+      canvas.width  = width
+      canvas.height = height
+      canvas.getContext("2d")!.drawImage(img, 0, 0, width, height)
+      URL.revokeObjectURL(url)
+      canvas.toBlob(
+        (blob) => blob ? resolve(blob) : reject(new Error("Canvas toBlob failed")),
+        "image/jpeg",
+        quality
+      )
+    }
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("Image load failed")) }
+    img.src = url
+  })
+}
+
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
 interface PhotoRecord {
@@ -192,6 +222,10 @@ export function PhotoCapture({ formId, readOnly = false }: PhotoCaptureProps) {
     if (accuracy) fd.append("accuracy", accuracy)
 
     try {
+      // Comprimir antes de subir (resuelve error de memoria en Android)
+      const compressed = await compressImage(file)
+      fd.set("photo", new File([compressed], file.name.replace(/\.\w+$/, ".jpg"), { type: "image/jpeg" }))
+
       const res = await fetch(`/api/forms/${formId}/photos`, {
         method: "POST",
         body: fd,
@@ -249,7 +283,9 @@ export function PhotoCapture({ formId, readOnly = false }: PhotoCaptureProps) {
         )}
       </div>
 
-      {/* Input de cámara — oculto */}
+      {/* capture="environment" abre cámara trasera en Android y Safari iOS.
+          Chrome iOS ignora el atributo pero accept="image/*" igual muestra
+          el picker nativo con opción de cámara. */}
       <input
         ref={inputRef}
         type="file"
