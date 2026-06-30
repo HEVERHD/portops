@@ -146,6 +146,7 @@ export default async function FormDetailPage({
               <> · {new Date(formInstance.startedAt).toLocaleTimeString("es-CO", {
                 hour: "2-digit",
                 minute: "2-digit",
+                timeZone: "America/Bogota",
               })}</>
             )}
           </p>

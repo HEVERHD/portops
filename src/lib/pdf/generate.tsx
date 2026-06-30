@@ -49,13 +49,13 @@ export interface FormPDFInput {
 
 function fmtDate(d: Date | string): string {
   return new Date(d).toLocaleDateString("es-CO", {
-    day: "2-digit", month: "2-digit", year: "numeric",
+    day: "2-digit", month: "2-digit", year: "numeric", timeZone: "America/Bogota",
   })
 }
 
 function fmtTime(d: Date | string): string {
   return new Date(d).toLocaleTimeString("es-CO", {
-    hour: "2-digit", minute: "2-digit",
+    hour: "2-digit", minute: "2-digit", timeZone: "America/Bogota",
   })
 }
 

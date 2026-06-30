@@ -79,6 +79,7 @@ function PhotoCard({ photo }: { photo: PhotoRecord }) {
             {new Date(photo.uploadedAt).toLocaleTimeString("es-CO", {
               hour: "2-digit",
               minute: "2-digit",
+              timeZone: "America/Bogota",
             })}
           </span>
         </div>

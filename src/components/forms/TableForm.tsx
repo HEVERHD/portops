@@ -349,7 +349,7 @@ export function TableForm({
                 <span className="capitalize">{sig.type.toLowerCase()}</span>
                 <span>·</span>
                 <span>{new Date(sig.signedAt).toLocaleTimeString("es-CO", {
-                  hour: "2-digit", minute: "2-digit",
+                  hour: "2-digit", minute: "2-digit", timeZone: "America/Bogota",
                 })}</span>
               </div>
             </div>

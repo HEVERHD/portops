@@ -379,7 +379,7 @@ export function FormFiller({
                   <p className="text-xs font-medium text-slate-300">{sig.signedBy.name}</p>
                   <p className="text-xs text-slate-500">
                     {sig.type === "OPERATOR" ? "Operador" : "Supervisor"} ·{" "}
-                    {new Date(sig.signedAt).toLocaleString("es-CO")}
+                    {new Date(sig.signedAt).toLocaleString("es-CO", { timeZone: "America/Bogota" })}
                   </p>
                 </div>
                 <CheckCircle2 className="w-4 h-4 text-green-400 shrink-0" />
