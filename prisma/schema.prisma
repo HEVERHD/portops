@@ -1,0 +1,238 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─── Enums ────────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  ADMIN
+  COORDINATOR
+  FIELD_SUPERVISOR
+  CLIENT
+}
+
+enum OperationType {
+  ACERO
+  GRANEL
+  FERTILIZANTE
+  DESCARGUE_ACERO
+  DESCARGUE_GENERAL
+  COQUE
+}
+
+enum FormType {
+  REGISTRO_ASISTENCIA
+  CONTROL_INGRESO_SALIDA
+  TAR
+  PERMISO_ALTURAS
+  INSPECCION_HSE
+  INSPECCION_GRUA
+  ANALISIS_ENTORNO
+  PLAN_IZAJE
+  INSPECCION_TOLVA
+  INSPECCION_CUCHARA
+}
+
+enum FormScope {
+  PER_OPERATION
+  PER_SERVICE
+}
+
+enum FormStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  SIGNED
+}
+
+enum OperationStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CLOSED
+}
+
+// ─── Multi-tenant: Organización ───────────────────────────────────────────────
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  code      String   @unique
+  logoUrl   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users      User[]
+  ships      Ship[]
+  operations Operation[]
+}
+
+// ─── Usuarios ─────────────────────────────────────────────────────────────────
+
+model User {
+  id             String       @id @default(cuid())
+  email          String       @unique
+  name           String
+  passwordHash   String
+  role           UserRole
+  active         Boolean      @default(true)
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  filledForms     FormInstance[] @relation("FilledBy")
+  supervisedForms FormInstance[] @relation("SupervisedBy")
+  formPhotos      FormPhoto[]    @relation("UploadedPhotos")
+  photos          Photo[]
+  signatures      Signature[]
+}
+
+// ─── Barcos ───────────────────────────────────────────────────────────────────
+
+model Ship {
+  id             String       @id @default(cuid())
+  name           String
+  imo            String?
+  flag           String?
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime     @default(now())
+
+  operations     Operation[]
+}
+
+// ─── Operaciones (turno + barco) ──────────────────────────────────────────────
+
+model Operation {
+  id             String          @id @default(cuid())
+  type           OperationType
+  shift          String          // "DIURNO" | "NOCTURNO"
+  date           DateTime        @default(now())
+  status         OperationStatus @default(OPEN)
+  notes          String?
+  shipId         String
+  ship           Ship            @relation(fields: [shipId], references: [id])
+  organizationId String
+  organization   Organization    @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  services      Service[]
+  formInstances FormInstance[]
+}
+
+// ─── Servicios (grúa / equipo dentro de una operación) ───────────────────────
+
+model Service {
+  id          String    @id @default(cuid())
+  operationId String
+  operation   Operation @relation(fields: [operationId], references: [id], onDelete: Cascade)
+  label       String    // "Grúa 1", "Cuchara 2", etc.
+  number      Int
+  createdAt   DateTime  @default(now())
+
+  formInstances FormInstance[]
+}
+
+// ─── Instancias de formulario ─────────────────────────────────────────────────
+
+model FormInstance {
+  id               String     @id @default(cuid())
+  formType         FormType
+  scope            FormScope
+  status           FormStatus @default(PENDING)
+  requiresSignature Boolean   @default(false)
+  operationId      String
+  operation        Operation  @relation(fields: [operationId], references: [id], onDelete: Cascade)
+  serviceId        String?
+  service          Service?   @relation(fields: [serviceId], references: [id])
+  filledById       String?
+  filledBy         User?      @relation("FilledBy", fields: [filledById], references: [id])
+  supervisorId     String?
+  supervisor       User?      @relation("SupervisedBy", fields: [supervisorId], references: [id])
+  startedAt        DateTime?
+  completedAt      DateTime?
+  formData         Json?      // datos para formularios no-checklist (ATS/TAR)
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  responses  ChecklistResponse[]
+  signatures Signature[]
+  photos     FormPhoto[]
+}
+
+// ─── Respuestas de checklist ──────────────────────────────────────────────────
+
+model ChecklistResponse {
+  id             String       @id @default(cuid())
+  formInstanceId String
+  formInstance   FormInstance @relation(fields: [formInstanceId], references: [id], onDelete: Cascade)
+  itemCode       String       // ej: "HSE_01"
+  itemLabel      String       // texto guardado para auditoría
+  checked        Boolean?     // true=Cumple/SI, false=No Cumple/NO, null=N/A
+  observation    String?
+  checkedBy      String?
+  checkedAt      DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  photos Photo[]
+
+  @@unique([formInstanceId, itemCode])
+}
+
+// ─── Fotos (antifraude) ───────────────────────────────────────────────────────
+
+model Photo {
+  id                  String            @id @default(cuid())
+  checklistResponseId String
+  checklistResponse   ChecklistResponse @relation(fields: [checklistResponseId], references: [id], onDelete: Cascade)
+  url                 String
+  fileName            String
+  uploadedById        String
+  uploadedBy          User              @relation(fields: [uploadedById], references: [id])
+  uploadedAt          DateTime          @default(now())
+  // Metadatos antifraude
+  ipAddress           String?
+  latitude            Float?
+  longitude           Float?
+  deviceInfo          String?
+}
+
+// ─── Fotos de evidencia por formulario (antifraude) ──────────────────────────
+
+model FormPhoto {
+  id             String       @id @default(cuid())
+  formInstanceId String
+  formInstance   FormInstance @relation(fields: [formInstanceId], references: [id], onDelete: Cascade)
+  uploadedById   String
+  uploadedBy     User         @relation("UploadedPhotos", fields: [uploadedById], references: [id])
+  url            String       // ruta pública del archivo
+  fileName       String
+  // Metadatos antifraude
+  latitude       Float?
+  longitude      Float?
+  accuracy       Float?       // precisión GPS en metros
+  ipAddress      String?
+  userAgent      String?
+  uploadedAt     DateTime     @default(now())
+}
+
+// ─── Firmas digitales ─────────────────────────────────────────────────────────
+
+model Signature {
+  id             String       @id @default(cuid())
+  formInstanceId String
+  formInstance   FormInstance @relation(fields: [formInstanceId], references: [id], onDelete: Cascade)
+  type           String       // "OPERATOR" | "SUPERVISOR"
+  signatureData  String       @db.Text // base64 del canvas
+  signedById     String
+  signedBy       User         @relation(fields: [signedById], references: [id])
+  signedAt       DateTime     @default(now())
+}
