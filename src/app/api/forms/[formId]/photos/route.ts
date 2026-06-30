@@ -1,7 +1,6 @@
 import { auth } from "@auth"
 import { prisma } from "@/lib/prisma"
-import { writeFile, mkdir } from "fs/promises"
-import { join } from "path"
+import { cloudinary } from "@/lib/cloudinary"
 import { cuid } from "@/lib/cuid"
 
 // GET /api/forms/[formId]/photos
@@ -96,18 +95,30 @@ export async function POST(
   )
   const ua = req.headers.get("user-agent") ?? undefined
 
-  // Guardar archivo en public/uploads/photos/{formId}/
-  const ext      = file.type === "image/png" ? "png" : "jpg"
-  const photoId  = cuid()
-  const fileName = `${photoId}.${ext}`
-  const dir      = join(process.cwd(), "public", "uploads", "photos", formId)
-  const filePath = join(dir, fileName)
-  const publicUrl = `/uploads/photos/${formId}/${fileName}`
+  // Subir a Cloudinary
+  const photoId = cuid()
+  const buffer  = Buffer.from(await file.arrayBuffer())
 
-  await mkdir(dir, { recursive: true })
+  const uploadResult = await new Promise<{ secure_url: string; public_id: string }>(
+    (resolve, reject) => {
+      cloudinary.uploader
+        .upload_stream(
+          {
+            folder:    `portops/forms/${formId}`,
+            public_id: photoId,
+            resource_type: "image",
+          },
+          (error, result) => {
+            if (error || !result) return reject(error ?? new Error("Upload failed"))
+            resolve(result as { secure_url: string; public_id: string })
+          }
+        )
+        .end(buffer)
+    }
+  )
 
-  const buffer = Buffer.from(await file.arrayBuffer())
-  await writeFile(filePath, buffer)
+  const fileName  = `${photoId}.${file.type === "image/png" ? "png" : "jpg"}`
+  const publicUrl = uploadResult.secure_url
 
   // Guardar en BD
   const photo = await prisma.formPhoto.create({
@@ -116,8 +127,8 @@ export async function POST(
       uploadedById:   session.user.id,
       url:            publicUrl,
       fileName,
-      latitude:       lat  ? parseFloat(lat  as string) : null,
-      longitude:      lng  ? parseFloat(lng  as string) : null,
+      latitude:       lat      ? parseFloat(lat      as string) : null,
+      longitude:      lng      ? parseFloat(lng      as string) : null,
       accuracy:       accuracy ? parseFloat(accuracy as string) : null,
       ipAddress:      ip,
       userAgent:      ua,

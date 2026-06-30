@@ -1,0 +1,35 @@
+# Dependencias (se instalan dentro del build)
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build output
+.next
+out
+build
+
+# Secretos — nunca van en la imagen
+.env
+.env.*
+
+# Git
+.git
+.gitignore
+
+# Prisma: cliente generado (se regenera con `prisma generate` en el build)
+src/generated/prisma
+
+# Archivos del desarrollador
+.DS_Store
+*.tsbuildinfo
+next-env.d.ts
+coverage
+
+# Claude
+.claude/
+CLAUDE.md
+AGENTS.md
+
+# Uploads locales
+public/uploads/
