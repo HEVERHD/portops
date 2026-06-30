@@ -508,7 +508,7 @@ export default function IntroPage() {
                               bg-blue-950/60 border border-blue-800/50 px-3 py-1
                               rounded-full mb-6">
                 <CheckCircle2 className="w-3.5 h-3.5" />
-                Demo lista — todas las funcionalidades activas
+                Sistema activo — todas las funcionalidades disponibles
               </div>
 
               <h2 className="text-3xl sm:text-4xl font-extrabold text-white mb-4 leading-tight">
@@ -516,8 +516,8 @@ export default function IntroPage() {
               </h2>
 
               <p className="text-slate-400 mb-8 text-sm leading-relaxed max-w-md mx-auto">
-                Ingresa con cualquiera de las cuentas de demo para explorar
-                formularios, firmas, fotos, PDF y reportes.
+                Accede al sistema con tus credenciales para gestionar
+                operaciones, formularios, firmas y reportes.
               </p>
 
               <Link
@@ -529,27 +529,6 @@ export default function IntroPage() {
                 Iniciar sesión
                 <ArrowRight className="w-4 h-4" />
               </Link>
-
-              {/* Cuentas demo */}
-              <div className="mt-8 grid sm:grid-cols-2 gap-2 text-left max-w-md mx-auto">
-                {[
-                  { role: "Admin",       email: "admin@portops.co",        pass: "admin123",    color: "text-purple-400" },
-                  { role: "Coordinador", email: "coordinador@portops.co",  pass: "coord123",    color: "text-blue-400" },
-                  { role: "Supervisor",  email: "supervisor@portops.co",   pass: "super123",    color: "text-green-400" },
-                  { role: "Cliente",     email: "cliente@empresa.co",       pass: "cliente123",  color: "text-amber-400" },
-                ].map((u) => (
-                  <div
-                    key={u.email}
-                    className="bg-slate-900 border border-slate-800 rounded-xl p-3"
-                  >
-                    <div className={`text-[10px] font-semibold uppercase tracking-wider mb-1 ${u.color}`}>
-                      {u.role}
-                    </div>
-                    <div className="text-xs font-mono text-slate-300 truncate">{u.email}</div>
-                    <div className="text-xs font-mono text-slate-500">{u.pass}</div>
-                  </div>
-                ))}
-              </div>
             </div>
           </div>
         </div>
