@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Ship, Anchor, ClipboardList } from "lucide-react"
 import type { UserRole } from "@/generated/prisma/client"
+import { useLoading } from "@/contexts/LoadingContext"
 
 const NAV_ITEMS = [
   {
@@ -27,7 +28,8 @@ const NAV_ITEMS = [
 ]
 
 export default function BottomNav({ role }: { role: UserRole }) {
-  const pathname = usePathname()
+  const pathname      = usePathname()
+  const { startLoading } = useLoading()
   const items = NAV_ITEMS.filter((item) => item.roles.includes(role))
 
   return (
@@ -40,6 +42,7 @@ export default function BottomNav({ role }: { role: UserRole }) {
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => { if (!active) startLoading() }}
               className={`flex-1 flex flex-col items-center gap-1 py-3 text-xs font-medium
                           transition-colors active:scale-95
                           ${active ? "text-blue-400" : "text-slate-500 hover:text-slate-300"}`}

@@ -3,9 +3,11 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Trash2, Loader2 } from "lucide-react"
+import { useLoading } from "@/contexts/LoadingContext"
 
 export function DeleteOperationButton({ operationId }: { operationId: string }) {
   const router = useRouter()
+  const { startLoading } = useLoading()
   const [confirming, setConfirming] = useState(false)
   const [loading, setLoading]       = useState(false)
   const [error, setError]           = useState("")
@@ -20,6 +22,7 @@ export function DeleteOperationButton({ operationId }: { operationId: string }) 
         setError(data.error ?? "Error al eliminar")
         setConfirming(false)
       } else {
+        startLoading()
         router.push("/operations")
         router.refresh()
       }

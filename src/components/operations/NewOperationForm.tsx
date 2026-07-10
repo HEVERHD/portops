@@ -7,6 +7,7 @@ import { Anchor } from "lucide-react"
 import { OPERATION_TEMPLATES, countForms } from "@/lib/operation-templates"
 import type { OperationType, UserRole } from "@/generated/prisma/client"
 import type { Ship } from "@/generated/prisma/client"
+import { useLoading } from "@/contexts/LoadingContext"
 
 const OPERATION_TYPES = Object.entries(OPERATION_TEMPLATES).map(([key, val]) => ({
   value: key as OperationType,
@@ -16,6 +17,7 @@ const OPERATION_TYPES = Object.entries(OPERATION_TEMPLATES).map(([key, val]) => 
 
 export default function NewOperationForm({ ships, userRole }: { ships: Ship[]; userRole: UserRole }) {
   const router = useRouter()
+  const { startLoading } = useLoading()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
@@ -46,6 +48,7 @@ export default function NewOperationForm({ ships, userRole }: { ships: Ship[]; u
       }
 
       const op = await res.json()
+      startLoading()
       router.push(`/operations/${op.id}`)
     } catch {
       setError("Error de conexión")

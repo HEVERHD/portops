@@ -3,6 +3,9 @@ import { redirect } from "next/navigation"
 import Sidebar from "@/components/layout/Sidebar"
 import MobileHeader from "@/components/layout/MobileHeader"
 import BottomNav from "@/components/layout/BottomNav"
+import { LoadingProvider } from "@/contexts/LoadingContext"
+import { GlobalLoader } from "@/components/ui/GlobalLoader"
+import { NavigationLoader } from "@/components/ui/NavigationLoader"
 
 export default async function DashboardLayout({
   children,
@@ -13,23 +16,28 @@ export default async function DashboardLayout({
   if (!session) redirect("/login")
 
   return (
-    <div className="flex h-full">
-      {/* Sidebar — visible only on md+ */}
-      <Sidebar user={session.user} />
+    <LoadingProvider>
+      <GlobalLoader />
+      <NavigationLoader />
 
-      {/* Right column: header (mobile) + main + bottom nav (mobile) */}
-      <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
-        <MobileHeader
-          organizationName={session.user.organizationName}
-          userName={session.user.name ?? ""}
-        />
+      <div className="flex h-full">
+        {/* Sidebar — visible only on md+ */}
+        <Sidebar user={session.user} />
 
-        <main className="flex-1 overflow-auto bg-slate-950">
-          {children}
-        </main>
+        {/* Right column: header (mobile) + main + bottom nav (mobile) */}
+        <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
+          <MobileHeader
+            organizationName={session.user.organizationName}
+            userName={session.user.name ?? ""}
+          />
 
-        <BottomNav role={session.user.role} />
+          <main className="flex-1 overflow-auto bg-slate-950">
+            {children}
+          </main>
+
+          <BottomNav role={session.user.role} />
+        </div>
       </div>
-    </div>
+    </LoadingProvider>
   )
 }

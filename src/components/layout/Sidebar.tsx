@@ -12,6 +12,7 @@ import {
   ChevronRight,
 } from "lucide-react"
 import type { UserRole } from "@/generated/prisma/client"
+import { useLoading } from "@/contexts/LoadingContext"
 
 interface SidebarUser {
   name: string
@@ -49,7 +50,8 @@ const NAV_ITEMS = [
 ]
 
 export default function Sidebar({ user }: { user: SidebarUser }) {
-  const pathname = usePathname()
+  const pathname      = usePathname()
+  const { startLoading } = useLoading()
 
   const visibleItems = NAV_ITEMS.filter((item) =>
     item.roles.includes(user.role)
@@ -83,6 +85,7 @@ export default function Sidebar({ user }: { user: SidebarUser }) {
             <Link
               key={item.href}
               href={item.href}
+              onClick={() => { if (!active) startLoading() }}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors group
                 ${active
                   ? "bg-orange-600 text-white"
