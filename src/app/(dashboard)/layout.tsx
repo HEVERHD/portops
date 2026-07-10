@@ -1,3 +1,4 @@
+import { Suspense } from "react"
 import { auth } from "@auth"
 import { redirect } from "next/navigation"
 import Sidebar from "@/components/layout/Sidebar"
@@ -18,7 +19,9 @@ export default async function DashboardLayout({
   return (
     <LoadingProvider>
       <GlobalLoader />
-      <NavigationLoader />
+      <Suspense fallback={null}>
+        <NavigationLoader />
+      </Suspense>
 
       <div className="flex h-full">
         {/* Sidebar — visible only on md+ */}
