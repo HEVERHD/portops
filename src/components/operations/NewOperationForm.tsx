@@ -2,8 +2,10 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { Anchor } from "lucide-react"
 import { OPERATION_TEMPLATES, countForms } from "@/lib/operation-templates"
-import type { OperationType } from "@/generated/prisma/client"
+import type { OperationType, UserRole } from "@/generated/prisma/client"
 import type { Ship } from "@/generated/prisma/client"
 
 const OPERATION_TYPES = Object.entries(OPERATION_TEMPLATES).map(([key, val]) => ({
@@ -12,7 +14,7 @@ const OPERATION_TYPES = Object.entries(OPERATION_TEMPLATES).map(([key, val]) => 
   description: val.description,
 }))
 
-export default function NewOperationForm({ ships }: { ships: Ship[] }) {
+export default function NewOperationForm({ ships, userRole }: { ships: Ship[]; userRole: UserRole }) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
@@ -50,6 +52,33 @@ export default function NewOperationForm({ ships }: { ships: Ship[] }) {
     } finally {
       setLoading(false)
     }
+  }
+
+  if (ships.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 text-center">
+        <div className="w-14 h-14 bg-slate-800 border border-slate-700 rounded-2xl
+                        flex items-center justify-center mb-4">
+          <Anchor className="w-7 h-7 text-slate-500" />
+        </div>
+        <p className="text-base font-semibold text-white mb-1">No hay naves registradas</p>
+        <p className="text-sm text-slate-400 max-w-xs mb-6">
+          {userRole === "ADMIN"
+            ? "Debes registrar al menos una nave antes de poder crear una operación."
+            : "El administrador debe registrar una nave antes de poder crear operaciones."}
+        </p>
+        {userRole === "ADMIN" && (
+          <Link
+            href="/ships"
+            className="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-500
+                       text-white text-sm font-medium px-5 py-2.5 rounded-xl transition-colors"
+          >
+            <Anchor className="w-4 h-4" />
+            Ir a gestión de naves
+          </Link>
+        )}
+      </div>
+    )
   }
 
   return (
@@ -96,9 +125,6 @@ export default function NewOperationForm({ ships }: { ships: Ship[] }) {
             </option>
           ))}
         </select>
-        {ships.length === 0 && (
-          <p className="text-xs text-amber-400 mt-1">No hay barcos registrados. Crea uno primero.</p>
-        )}
       </div>
 
       {/* Turno + Servicios */}

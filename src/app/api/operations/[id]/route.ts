@@ -1,6 +1,50 @@
 import { auth } from "@auth"
 import { prisma } from "@/lib/prisma"
 
+export async function DELETE(
+  _request: Request,
+  ctx: RouteContext<"/api/operations/[id]">
+) {
+  const session = await auth()
+  if (!session) return Response.json({ error: "No autorizado" }, { status: 401 })
+
+  if (!["ADMIN", "COORDINATOR"].includes(session.user.role)) {
+    return Response.json({ error: "Sin permisos" }, { status: 403 })
+  }
+
+  const { id } = await ctx.params
+
+  const operation = await prisma.operation.findFirst({
+    where: { id, organizationId: session.user.organizationId },
+    include: {
+      formInstances: { select: { status: true } },
+    },
+  })
+
+  if (!operation) {
+    return Response.json({ error: "Operación no encontrada" }, { status: 404 })
+  }
+
+  if (operation.status !== "OPEN") {
+    return Response.json(
+      { error: "Solo se pueden eliminar operaciones abiertas" },
+      { status: 409 }
+    )
+  }
+
+  const hasData = operation.formInstances.some((f) => f.status !== "PENDING")
+  if (hasData) {
+    return Response.json(
+      { error: "No se puede eliminar una operación con formularios diligenciados" },
+      { status: 409 }
+    )
+  }
+
+  await prisma.operation.delete({ where: { id } })
+
+  return Response.json({ success: true })
+}
+
 export async function GET(
   _request: Request,
   ctx: RouteContext<"/api/operations/[id]">

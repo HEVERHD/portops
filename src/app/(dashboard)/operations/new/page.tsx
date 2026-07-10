@@ -24,7 +24,7 @@ export default async function NewOperationPage() {
           Los formularios se generarán automáticamente según el tipo y cantidad de servicios
         </p>
       </div>
-      <NewOperationForm ships={ships} />
+      <NewOperationForm ships={ships} userRole={session.user.role} />
     </div>
   )
 }

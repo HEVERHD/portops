@@ -5,6 +5,7 @@ import Link from "next/link"
 import { ArrowLeft, Ship, Clock, CheckCircle2, Circle, AlertCircle } from "lucide-react"
 import { FORM_TYPE_LABELS, OPERATION_TEMPLATES } from "@/lib/operation-templates"
 import type { FormStatus, OperationType } from "@/generated/prisma/client"
+import { DeleteOperationButton } from "@/components/operations/DeleteOperationButton"
 
 const FORM_STATUS_CONFIG: Record<FormStatus, { label: string; icon: typeof Circle; className: string }> = {
   PENDING:     { label: "Pendiente",  icon: Circle,       className: "text-slate-500" },
@@ -50,15 +51,25 @@ export default async function OperationDetailPage(
 
   return (
     <div className="p-4 md:p-6 max-w-4xl mx-auto">
-      {/* Back */}
-      <Link
-        href="/operations"
-        className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-white
-                   transition-colors mb-4"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Volver a operaciones
-      </Link>
+      {/* Back + Delete */}
+      <div className="flex items-center justify-between mb-4">
+        <Link
+          href="/operations"
+          className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-white
+                     transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Volver a operaciones
+        </Link>
+
+        {/* Eliminar solo si está OPEN y sin formularios diligenciados */}
+        {session.user.role !== "CLIENT" &&
+         session.user.role !== "FIELD_SUPERVISOR" &&
+         operation.status === "OPEN" &&
+         operation.formInstances.every((f) => f.status === "PENDING") && (
+          <DeleteOperationButton operationId={operation.id} />
+        )}
+      </div>
 
       {/* Info card */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-4 md:p-5 mb-5">

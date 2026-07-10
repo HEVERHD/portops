@@ -6,6 +6,7 @@ import { signOut } from "next-auth/react"
 import Image from "next/image"
 import {
   Ship,
+  Anchor,
   ClipboardList,
   LogOut,
   ChevronRight,
@@ -38,6 +39,12 @@ const NAV_ITEMS = [
     label: "Reportes",
     icon: ClipboardList,
     roles: ["ADMIN", "COORDINATOR", "CLIENT"] as UserRole[],
+  },
+  {
+    href: "/ships",
+    label: "Naves",
+    icon: Anchor,
+    roles: ["ADMIN", "COORDINATOR"] as UserRole[],
   },
 ]
 
