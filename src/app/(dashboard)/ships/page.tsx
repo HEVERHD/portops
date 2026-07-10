@@ -26,14 +26,12 @@ export default async function ShipsPage() {
         <div>
           <h1 className="text-lg font-bold text-white">Naves registradas</h1>
           <p className="text-xs text-slate-400 mt-0.5">
-            {session.user.role === "ADMIN"
-              ? "Administra las motonaves disponibles para crear operaciones"
-              : "Consulta las motonaves disponibles para crear operaciones"}
+            Administra las motonaves disponibles para crear operaciones
           </p>
         </div>
       </div>
 
-      <ShipsManager initialShips={ships} canManage={session.user.role === "ADMIN"} />
+      <ShipsManager initialShips={ships} canManage={["ADMIN", "COORDINATOR"].includes(session.user.role)} />
     </div>
   )
 }

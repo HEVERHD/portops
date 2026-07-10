@@ -19,8 +19,8 @@ export async function POST(request: Request) {
   const session = await auth()
   if (!session) return Response.json({ error: "No autorizado" }, { status: 401 })
 
-  if (session.user.role !== "ADMIN") {
-    return Response.json({ error: "Solo el administrador puede crear barcos" }, { status: 403 })
+  if (!["ADMIN", "COORDINATOR"].includes(session.user.role)) {
+    return Response.json({ error: "Sin permisos para crear naves" }, { status: 403 })
   }
 
   const body = await request.json()

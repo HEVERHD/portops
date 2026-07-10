@@ -9,8 +9,8 @@ export async function DELETE(
   const session = await auth()
   if (!session) return Response.json({ error: "No autorizado" }, { status: 401 })
 
-  if (session.user.role !== "ADMIN") {
-    return Response.json({ error: "Solo el administrador puede eliminar barcos" }, { status: 403 })
+  if (!["ADMIN", "COORDINATOR"].includes(session.user.role)) {
+    return Response.json({ error: "Sin permisos para eliminar naves" }, { status: 403 })
   }
 
   const { id } = await params

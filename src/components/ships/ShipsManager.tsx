@@ -11,6 +11,69 @@ interface ShipRecord {
   _count: { operations: number }
 }
 
+// ── Flag emoji helpers ────────────────────────────────────────────────────────
+
+/** ISO-3166-1 alpha-2 → flag emoji */
+function iso2ToEmoji(code: string): string {
+  return [...code.toUpperCase()]
+    .map((c) => String.fromCodePoint(0x1f1e6 + c.charCodeAt(0) - 65))
+    .join("")
+}
+
+/** Maps ISO-3 codes and common full country names → ISO-2 */
+const FLAG_LOOKUP: Record<string, string> = {
+  // ISO-3
+  col: "CO", pan: "PA", bhs: "BS", lbr: "LR", mhl: "MH", nld: "NL",
+  gbr: "GB", usa: "US", chl: "CL", bra: "BR", arg: "AR", mex: "MX",
+  ven: "VE", ecu: "EC", per: "PE", cri: "CR", hnd: "HN", gtm: "GT",
+  slv: "SV", nic: "NI", dom: "DO", cub: "CU", jam: "JM", hti: "HT",
+  tto: "TT", brb: "BB", atg: "AG", lca: "LC", vct: "VC", grd: "GD",
+  kna: "KN", dma: "DM", blz: "BZ", guy: "GY", sur: "SR", bol: "BO",
+  pry: "PY", ury: "UY", nor: "NO", dnk: "DK", swe: "SE", fin: "FI",
+  deu: "DE", fra: "FR", ita: "IT", esp: "ES", prt: "PT", grc: "GR",
+  cyp: "CY", mlt: "MT", sgp: "SG", hkg: "HK", chn: "CN", jpn: "JP",
+  kor: "KR", ind: "IN", are: "AE", sau: "SA", tur: "TR", rus: "RU",
+  ukr: "UA", bel: "BE", che: "CH", aut: "AT", isl: "IS", irl: "IE",
+  phl: "PH", idn: "ID", mys: "MY", tha: "TH", vnm: "VN", mng: "MN",
+  // Full names (lowercase)
+  colombia: "CO", panama: "PA", bahamas: "BS", liberia: "LR",
+  "marshall islands": "MH", netherlands: "NL", "united kingdom": "GB",
+  "united states": "US", chile: "CL", brazil: "BR", argentina: "AR",
+  mexico: "MX", venezuela: "VE", ecuador: "EC", peru: "PE",
+  "costa rica": "CR", honduras: "HN", guatemala: "GT", "el salvador": "SV",
+  nicaragua: "NI", "dominican republic": "DO", cuba: "CU", jamaica: "JM",
+  haiti: "HT", "trinidad and tobago": "TT", barbados: "BB",
+  "antigua and barbuda": "AG", "saint lucia": "LC",
+  "saint vincent": "VC", grenada: "GD", belize: "BZ", guyana: "GY",
+  suriname: "SR", bolivia: "BO", paraguay: "PY", uruguay: "UY",
+  norway: "NO", denmark: "DK", sweden: "SE", finland: "FI",
+  germany: "DE", france: "FR", italy: "IT", spain: "ES",
+  portugal: "PT", greece: "GR", cyprus: "CY", malta: "MT",
+  singapore: "SG", china: "CN", japan: "JP", "south korea": "KR",
+  india: "IN", russia: "RU", turkey: "TR", ukraine: "UA",
+  belgium: "BE", switzerland: "CH", austria: "AT", iceland: "IS",
+  ireland: "IE", philippines: "PH", indonesia: "ID", malaysia: "MY",
+  thailand: "TH", vietnam: "VN",
+}
+
+/** Returns flag emoji string, or null if unknown */
+function getFlagEmoji(flag: string | null): string | null {
+  if (!flag) return null
+  const key = flag.trim().toLowerCase()
+  const upper = flag.trim().toUpperCase()
+
+  // Direct ISO-2 (2 letters)
+  if (upper.length === 2 && /^[A-Z]{2}$/.test(upper)) return iso2ToEmoji(upper)
+
+  // Lookup table (ISO-3 or full name)
+  const iso2 = FLAG_LOOKUP[key]
+  if (iso2) return iso2ToEmoji(iso2)
+
+  return null
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+
 export function ShipsManager({ initialShips, canManage = false }: { initialShips: ShipRecord[]; canManage?: boolean }) {
   const [ships, setShips]     = useState<ShipRecord[]>(initialShips)
   const [showForm, setShowForm] = useState(false)
@@ -126,16 +189,24 @@ export function ShipsManager({ initialShips, canManage = false }: { initialShips
             </div>
             <div>
               <label className="block text-xs font-medium text-slate-400 mb-1">
-                Bandera (opcional)
+                Bandera — código o nombre
               </label>
-              <input
-                value={flag}
-                onChange={(e) => setFlag(e.target.value)}
-                placeholder="COL"
-                className="w-full bg-slate-800 border border-slate-700 text-white rounded-lg
-                           px-3 py-2 text-sm placeholder-slate-500
-                           focus:outline-none focus:ring-2 focus:ring-orange-500"
-              />
+              <div className="relative">
+                <input
+                  value={flag}
+                  onChange={(e) => setFlag(e.target.value)}
+                  placeholder="COL / Colombia"
+                  className="w-full bg-slate-800 border border-slate-700 text-white rounded-lg
+                             px-3 py-2 text-sm placeholder-slate-500
+                             focus:outline-none focus:ring-2 focus:ring-orange-500
+                             pr-10"
+                />
+                {flag && (
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-lg leading-none pointer-events-none">
+                    {getFlagEmoji(flag) ?? "🏳️"}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
@@ -175,42 +246,53 @@ export function ShipsManager({ initialShips, canManage = false }: { initialShips
         </div>
       ) : (
         <div className="bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden">
-          {ships.map((ship, i) => (
-            <div
-              key={ship.id}
-              className={`flex items-center gap-3 px-4 py-3.5 ${
-                i < ships.length - 1 ? "border-b border-slate-800" : ""
-              }`}
-            >
-              <div className="w-8 h-8 bg-slate-800 rounded-lg flex items-center justify-center shrink-0">
-                <Ship className="w-4 h-4 text-slate-400" />
+          {ships.map((ship, i) => {
+            const emoji = getFlagEmoji(ship.flag)
+            return (
+              <div
+                key={ship.id}
+                className={`flex items-center gap-3 px-4 py-3.5 ${
+                  i < ships.length - 1 ? "border-b border-slate-800" : ""
+                }`}
+              >
+                {/* Icono: bandera emoji o ícono Ship */}
+                <div className="w-8 h-8 bg-slate-800 rounded-lg flex items-center justify-center shrink-0">
+                  {emoji
+                    ? <span className="text-lg leading-none">{emoji}</span>
+                    : <Ship className="w-4 h-4 text-slate-400" />
+                  }
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium text-white truncate">{ship.name}</p>
+                  <p className="text-xs text-slate-500">
+                    {[
+                      ship.imo  && `IMO: ${ship.imo}`,
+                      ship.flag && `${emoji ?? ""}${emoji ? " " : ""}${ship.flag}`,
+                    ].filter(Boolean).join(" · ") || "Sin datos adicionales"}
+                    {ship._count.operations > 0 && (
+                      <span className="ml-2 text-slate-600">
+                        · {ship._count.operations} operación{ship._count.operations !== 1 ? "es" : ""}
+                      </span>
+                    )}
+                  </p>
+                </div>
+
+                {canManage && ship._count.operations === 0 && (
+                  <button
+                    onClick={() => handleDelete(ship.id)}
+                    disabled={deletingId === ship.id}
+                    className="text-slate-600 hover:text-red-400 transition-colors disabled:opacity-50"
+                    title="Eliminar nave"
+                  >
+                    {deletingId === ship.id
+                      ? <Loader2 className="w-4 h-4 animate-spin" />
+                      : <Trash2 className="w-4 h-4" />}
+                  </button>
+                )}
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white truncate">{ship.name}</p>
-                <p className="text-xs text-slate-500">
-                  {[ship.imo && `IMO: ${ship.imo}`, ship.flag && `Bandera: ${ship.flag}`]
-                    .filter(Boolean).join(" · ") || "Sin datos adicionales"}
-                  {ship._count.operations > 0 && (
-                    <span className="ml-2 text-slate-600">
-                      · {ship._count.operations} operación{ship._count.operations !== 1 ? "es" : ""}
-                    </span>
-                  )}
-                </p>
-              </div>
-              {canManage && ship._count.operations === 0 && (
-                <button
-                  onClick={() => handleDelete(ship.id)}
-                  disabled={deletingId === ship.id}
-                  className="text-slate-600 hover:text-red-400 transition-colors disabled:opacity-50"
-                  title="Eliminar nave"
-                >
-                  {deletingId === ship.id
-                    ? <Loader2 className="w-4 h-4 animate-spin" />
-                    : <Trash2 className="w-4 h-4" />}
-                </button>
-              )}
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>
