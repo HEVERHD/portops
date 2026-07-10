@@ -4,6 +4,7 @@ import Link from "next/link"
 import { Plus, Ship, ChevronRight, Clock } from "lucide-react"
 import { OPERATION_TEMPLATES, FORM_TYPE_LABELS } from "@/lib/operation-templates"
 import type { FormStatus, OperationStatus, OperationType } from "@/generated/prisma/client"
+import { DateNavigation } from "@/components/operations/DateNavigation"
 
 const STATUS_STYLES: Record<OperationStatus, string> = {
   OPEN:        "bg-blue-500/10 text-blue-400 border-blue-500/20",
@@ -32,13 +33,36 @@ function progressOf(forms: { status: FormStatus }[]) {
   return Math.round((done / forms.length) * 100)
 }
 
-export default async function OperationsPage() {
+/** Returns "YYYY-MM-DD" in America/Bogota timezone */
+function todayBogota(): string {
+  return new Date().toLocaleDateString("en-CA", { timeZone: "America/Bogota" })
+}
+
+/** Build UTC-safe Date range for a Colombia calendar day */
+function dayRange(dateStr: string): { start: Date; end: Date } {
+  const [y, m, d] = dateStr.split("-").map(Number)
+  // TZ=America/Bogota env var means these constructors use Colombia time
+  const start = new Date(y, m - 1, d, 0,  0,  0,   0)
+  const end   = new Date(y, m - 1, d, 23, 59, 59, 999)
+  return { start, end }
+}
+
+export default async function OperationsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ date?: string }>
+}) {
   const session = await auth()
   if (!session) return null
 
-  const today = new Date()
-  const start = new Date(today); start.setHours(0, 0, 0, 0)
-  const end   = new Date(today); end.setHours(23, 59, 59, 999)
+  const today = todayBogota()
+  const { date: dateParam } = await searchParams
+
+  // Validate format: must be YYYY-MM-DD and not in the future
+  const isValid = dateParam && /^\d{4}-\d{2}-\d{2}$/.test(dateParam) && dateParam <= today
+  const dateStr = isValid ? dateParam : today
+
+  const { start, end } = dayRange(dateStr)
 
   const operations = await prisma.operation.findMany({
     where: {
@@ -56,23 +80,23 @@ export default async function OperationsPage() {
   })
 
   const canCreate = ["ADMIN", "COORDINATOR"].includes(session.user.role)
+  const isToday   = dateStr === today
 
   return (
     <div className="p-4 md:p-6 max-w-5xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-5">
-        <div className="min-w-0 mr-3">
-          <h1 className="text-lg md:text-xl font-bold text-white">Operaciones del día</h1>
-          <p className="text-xs md:text-sm text-slate-400 mt-0.5 capitalize">
-            {today.toLocaleDateString("es-CO", {
-              weekday: "long",
-              day:     "numeric",
-              month:   "long",
-              year:    "numeric",
-            })}
-          </p>
+      <div className="flex items-center justify-between gap-3 mb-5">
+        <div className="min-w-0">
+          <h1 className="text-lg md:text-xl font-bold text-white">
+            {isToday ? "Operaciones del día" : "Operaciones"}
+          </h1>
+          {/* Navegación de fechas */}
+          <div className="mt-0.5">
+            <DateNavigation dateStr={dateStr} todayStr={today} />
+          </div>
         </div>
-        {canCreate && (
+
+        {canCreate && isToday && (
           <Link
             href="/operations/new"
             className="flex items-center gap-1.5 bg-blue-600 hover:bg-blue-500 active:bg-blue-700
@@ -89,8 +113,10 @@ export default async function OperationsPage() {
       {operations.length === 0 ? (
         <div className="text-center py-20 text-slate-500">
           <Ship className="w-12 h-12 mx-auto mb-3 opacity-30" />
-          <p className="font-medium">No hay operaciones registradas hoy</p>
-          {canCreate && (
+          <p className="font-medium">
+            {isToday ? "No hay operaciones registradas hoy" : "No hay operaciones en este día"}
+          </p>
+          {canCreate && isToday && (
             <p className="text-sm mt-1">
               <Link href="/operations/new" className="text-blue-400 hover:underline">
                 Crear primera operación

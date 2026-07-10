@@ -1,5 +1,6 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { signOut } from "next-auth/react"
@@ -13,6 +14,7 @@ import {
 } from "lucide-react"
 import type { UserRole } from "@/generated/prisma/client"
 import { useLoading } from "@/contexts/LoadingContext"
+import { ConfirmModal } from "@/components/ui/ConfirmModal"
 
 interface SidebarUser {
   name: string
@@ -50,8 +52,9 @@ const NAV_ITEMS = [
 ]
 
 export default function Sidebar({ user }: { user: SidebarUser }) {
-  const pathname      = usePathname()
+  const pathname         = usePathname()
   const { startLoading } = useLoading()
+  const [showLogout, setShowLogout] = useState(false)
 
   const visibleItems = NAV_ITEMS.filter((item) =>
     item.roles.includes(user.role)
@@ -107,7 +110,7 @@ export default function Sidebar({ user }: { user: SidebarUser }) {
           <p className="text-xs text-slate-400">{ROLE_LABELS[user.role]}</p>
         </div>
         <button
-          onClick={() => signOut({ callbackUrl: "/login" })}
+          onClick={() => setShowLogout(true)}
           className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-slate-400
                      hover:text-white hover:bg-slate-800 transition-colors"
         >
@@ -115,6 +118,15 @@ export default function Sidebar({ user }: { user: SidebarUser }) {
           Cerrar sesión
         </button>
       </div>
+
+      <ConfirmModal
+        open={showLogout}
+        title="¿Cerrar sesión?"
+        description="Se cerrará tu sesión actual y serás redirigido al inicio de sesión."
+        confirmLabel="Sí, salir"
+        onConfirm={() => signOut({ callbackUrl: "/login" })}
+        onCancel={() => setShowLogout(false)}
+      />
     </aside>
   )
 }

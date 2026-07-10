@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { Ship, Plus, Trash2, Loader2, X } from "lucide-react"
+import { ConfirmModal } from "@/components/ui/ConfirmModal"
 
 interface ShipRecord {
   id: string
@@ -83,6 +84,7 @@ export function ShipsManager({ initialShips, canManage = false }: { initialShips
   const [saving, setSaving]   = useState(false)
   const [error, setError]     = useState("")
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
@@ -116,14 +118,15 @@ export function ShipsManager({ initialShips, canManage = false }: { initialShips
       const res = await fetch(`/api/ships/${id}`, { method: "DELETE" })
       const data = await res.json()
       if (!res.ok) {
-        alert(data.error ?? "No se pudo eliminar")
+        setError(data.error ?? "No se pudo eliminar")
       } else {
         setShips((prev) => prev.filter((s) => s.id !== id))
       }
     } catch {
-      alert("Error de conexión")
+      setError("Error de conexión")
     } finally {
       setDeletingId(null)
+      setConfirmDeleteId(null)
     }
   }
 
@@ -280,7 +283,7 @@ export function ShipsManager({ initialShips, canManage = false }: { initialShips
 
                 {canManage && ship._count.operations === 0 && (
                   <button
-                    onClick={() => handleDelete(ship.id)}
+                    onClick={() => setConfirmDeleteId(ship.id)}
                     disabled={deletingId === ship.id}
                     className="text-slate-600 hover:text-red-400 transition-colors disabled:opacity-50"
                     title="Eliminar nave"
@@ -295,6 +298,17 @@ export function ShipsManager({ initialShips, canManage = false }: { initialShips
           })}
         </div>
       )}
+
+      <ConfirmModal
+        open={confirmDeleteId !== null}
+        title="¿Eliminar esta nave?"
+        description="Se eliminará permanentemente. Solo es posible si no tiene operaciones registradas."
+        confirmLabel="Sí, eliminar"
+        dangerous
+        loading={deletingId !== null}
+        onConfirm={() => confirmDeleteId && handleDelete(confirmDeleteId)}
+        onCancel={() => setConfirmDeleteId(null)}
+      />
     </div>
   )
 }
