@@ -79,7 +79,7 @@ function DocHeader({
       {/* Logo */}
       <View style={S.docHeaderLogo}>
         <PDFImage
-          src={join(process.cwd(), "public", "logoPORTOPS.png")}
+          src={join(process.cwd(), "public", "ingecol.png")}
           style={{ width: 48, height: 48, objectFit: "contain" }}
         />
       </View>

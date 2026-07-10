@@ -37,17 +37,17 @@ export default function LoginPage() {
         {/* Logo / Header */}
         <div className="text-center mb-8">
           <div className="flex justify-center mb-5">
-            <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center shadow-lg shadow-blue-900/30">
+            <div className="w-24 h-16 bg-white rounded-2xl flex items-center justify-center shadow-lg shadow-orange-900/20 px-3">
               <Image
-                src="/logoPORTOPS.png"
-                alt="PortOps"
-                width={60}
-                height={60}
+                src="/ingecol.png"
+                alt="Ingecol"
+                width={130}
+                height={48}
                 className="object-contain"
               />
             </div>
           </div>
-          <h1 className="text-2xl font-bold text-white">PortOps</h1>
+          <h1 className="text-2xl font-bold text-white">Ingecol</h1>
           <p className="text-slate-400 text-sm mt-1">Gestión Portuaria Digital</p>
         </div>
 
@@ -63,7 +63,7 @@ export default function LoginPage() {
               required
               autoComplete="email"
               className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2.5 text-sm
-                         placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                         placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               placeholder="usuario@empresa.com"
             />
           </div>
@@ -78,7 +78,7 @@ export default function LoginPage() {
               required
               autoComplete="current-password"
               className="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2.5 text-sm
-                         placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                         placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
               placeholder="••••••••"
             />
           </div>
@@ -92,7 +92,7 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed
+            className="w-full bg-orange-600 hover:bg-orange-500 disabled:opacity-50 disabled:cursor-not-allowed
                        text-white font-medium py-2.5 rounded-lg text-sm transition-colors"
           >
             {loading ? "Ingresando..." : "Ingresar"}

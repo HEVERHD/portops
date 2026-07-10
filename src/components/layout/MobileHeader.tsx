@@ -14,14 +14,14 @@ export default function MobileHeader({ organizationName, userName }: Props) {
     <header className="md:hidden bg-slate-900 border-b border-slate-800 px-4 py-3 flex items-center justify-between shrink-0">
       <div className="flex items-center gap-2.5">
         <Image
-          src="/logoPORTOPS.png"
-          alt="PortOps"
+          src="/ingecol.png"
+          alt="Ingecol"
           width={32}
           height={32}
           className="rounded-xl shrink-0"
         />
         <div className="min-w-0">
-          <p className="text-sm font-bold text-white leading-none">PortOps</p>
+          <p className="text-sm font-bold text-white leading-none">Ingecol</p>
           <p className="text-xs text-slate-400 truncate">{organizationName}</p>
         </div>
       </div>

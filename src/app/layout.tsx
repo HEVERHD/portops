@@ -8,11 +8,11 @@ const geistSans = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "PortOps — Gestión Portuaria",
-  description: "Sistema digital de gestión de operaciones portuarias",
+  title: "Ingecol — Gestión Portuaria",
+  description: "Sistema digital de gestión de operaciones portuarias — Ingecol S.A.S.",
   icons: {
-    icon: "/logoPORTOPS.png",
-    apple: "/logoPORTOPS.png",
+    icon: "/ingecol.png",
+    apple: "/ingecol.png",
   },
 };
 

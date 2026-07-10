@@ -75,7 +75,7 @@ const OPERATION_TYPES = [
     forms: 7,
     tipos: "Inspección HSE · Grúa · Aparejos · Entorno · ATS · Alturas · Asistencia",
     color: "from-blue-600/20 to-blue-500/5 border-blue-700/40",
-    tag: "text-blue-400 bg-blue-950",
+    tag: "text-orange-400 bg-orange-950",
   },
   {
     code: "GRANEL",
@@ -116,7 +116,7 @@ const ROLES = [
   {
     label: "Coordinador",
     icon: ClipboardList,
-    color: "text-blue-400",
+    color: "text-orange-400",
     desc: "Crea operaciones, asigna formularios y supervisa el avance.",
   },
   {
@@ -160,7 +160,7 @@ const STEPS = [
 
 function GradientText({ children }: { children: React.ReactNode }) {
   return (
-    <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
+    <span className="bg-gradient-to-r from-orange-400 to-orange-300 bg-clip-text text-transparent">
       {children}
     </span>
   )
@@ -169,7 +169,7 @@ function GradientText({ children }: { children: React.ReactNode }) {
 function SectionLabel({ children }: { children: string }) {
   return (
     <span className="inline-block text-xs font-semibold tracking-widest uppercase
-                     text-blue-400 bg-blue-950/60 border border-blue-800/50
+                     text-orange-400 bg-orange-950/60 border border-orange-800/50
                      px-3 py-1 rounded-full mb-4">
       {children}
     </span>
@@ -187,7 +187,7 @@ function TypeBadge({ type }: { type: string }) {
   )
   return (
     <span className="text-[9px] font-semibold px-1.5 py-0.5 rounded
-                     bg-blue-950 text-blue-400">CHECKLIST</span>
+                     bg-orange-950 text-orange-400">CHECKLIST</span>
   )
 }
 
@@ -201,23 +201,20 @@ export default function IntroPage() {
       <header className="sticky top-0 z-50 border-b border-slate-800/60 backdrop-blur-md bg-slate-950/80">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <Image
-              src="/logoPORTOPS.png"
-              alt="PortOps"
-              width={28}
-              height={28}
-              className="rounded-lg"
-            />
-            <span className="font-bold text-white tracking-tight">PortOps</span>
-            <span className="hidden sm:block text-[10px] text-slate-500 border border-slate-700
-                             px-1.5 py-0.5 rounded ml-1 font-mono">
-              v1.0
-            </span>
+            <div className="bg-white rounded-lg px-2 py-1 flex items-center">
+              <Image
+                src="/ingecol.png"
+                alt="Ingecol"
+                width={80}
+                height={24}
+                className="object-contain"
+              />
+            </div>
           </div>
           <Link
             href="/login"
             className="flex items-center gap-1.5 text-sm font-medium text-white
-                       bg-blue-600 hover:bg-blue-500 px-4 py-1.5 rounded-lg
+                       bg-orange-600 hover:bg-orange-500 px-4 py-1.5 rounded-lg
                        transition-colors"
           >
             Ingresar
@@ -230,7 +227,7 @@ export default function IntroPage() {
       <section className="relative pt-24 pb-20 px-4 text-center overflow-hidden">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px]
-                          bg-blue-600/10 blur-3xl rounded-full" />
+                          bg-orange-600/10 blur-3xl rounded-full" />
         </div>
 
         <div className="relative max-w-3xl mx-auto">
@@ -249,7 +246,7 @@ export default function IntroPage() {
           </h1>
 
           <p className="text-lg text-slate-400 max-w-xl mx-auto mb-10 leading-relaxed">
-            PortOps digitaliza todos los formularios HSE del puerto. Checklists, tablas
+            Ingecol digitaliza todos los formularios HSE del puerto. Checklists, tablas
             de registro, ATS, firmas digitales, fotos con GPS y exportación a PDF —
             todo desde el celular, en tiempo real.
           </p>
@@ -257,7 +254,7 @@ export default function IntroPage() {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
             <Link
               href="/login"
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white
+              className="flex items-center gap-2 bg-orange-600 hover:bg-orange-500 text-white
                          font-semibold px-6 py-3 rounded-xl transition-colors text-sm
                          w-full sm:w-auto justify-center"
             >
@@ -380,9 +377,9 @@ export default function IntroPage() {
                   className="bg-slate-900 border border-slate-800 rounded-2xl p-5
                              hover:border-slate-700 transition-colors"
                 >
-                  <div className="w-9 h-9 rounded-xl bg-blue-600/15 border border-blue-700/30
+                  <div className="w-9 h-9 rounded-xl bg-orange-600/15 border border-orange-700/30
                                   flex items-center justify-center mb-3">
-                    <Icon className="w-4 h-4 text-blue-400" />
+                    <Icon className="w-4 h-4 text-orange-400" />
                   </div>
                   <h3 className="font-semibold text-white text-sm mb-1.5">{f.title}</h3>
                   <p className="text-slate-400 text-xs leading-relaxed">{f.desc}</p>
@@ -437,16 +434,16 @@ export default function IntroPage() {
               en metros.
             </p>
             <div className="flex items-center gap-2 mt-1">
-              <MapPin className="w-3.5 h-3.5 text-blue-400" />
+              <MapPin className="w-3.5 h-3.5 text-orange-400" />
               <span className="text-xs text-slate-400">Geolocalización en tiempo real</span>
             </div>
           </div>
 
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6
                           flex flex-col gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-600/15 border border-blue-700/30
+            <div className="w-10 h-10 rounded-xl bg-orange-600/15 border border-orange-700/30
                             flex items-center justify-center">
-              <Smartphone className="w-5 h-5 text-blue-400" />
+              <Smartphone className="w-5 h-5 text-orange-400" />
             </div>
             <h3 className="font-bold text-white">Mobile-first</h3>
             <p className="text-slate-400 text-sm leading-relaxed">
@@ -455,7 +452,7 @@ export default function IntroPage() {
               ante cortes de señal.
             </p>
             <div className="flex items-center gap-2 mt-1">
-              <Zap className="w-3.5 h-3.5 text-blue-400" />
+              <Zap className="w-3.5 h-3.5 text-orange-400" />
               <span className="text-xs text-slate-400">Sin instalación · Solo el navegador</span>
             </div>
           </div>
@@ -504,8 +501,8 @@ export default function IntroPage() {
             </div>
 
             <div className="relative">
-              <div className="inline-flex items-center gap-2 text-xs text-blue-400
-                              bg-blue-950/60 border border-blue-800/50 px-3 py-1
+              <div className="inline-flex items-center gap-2 text-xs text-orange-400
+                              bg-orange-950/60 border border-blue-800/50 px-3 py-1
                               rounded-full mb-6">
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 Sistema activo — todas las funcionalidades disponibles
@@ -522,7 +519,7 @@ export default function IntroPage() {
 
               <Link
                 href="/login"
-                className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500
+                className="inline-flex items-center gap-2 bg-orange-600 hover:bg-orange-500
                            text-white font-semibold px-8 py-3.5 rounded-xl
                            transition-colors text-sm"
               >
@@ -539,8 +536,8 @@ export default function IntroPage() {
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center
                         justify-between gap-3 text-xs text-slate-600">
           <div className="flex items-center gap-2">
-            <Image src="/logoPORTOPS.png" alt="PortOps" width={16} height={16} className="opacity-40" />
-            <span>PortOps · Puerto de Palermo — Ingecol S.A.S.</span>
+            <Image src="/ingecol.png" alt="Ingecol" width={16} height={16} className="opacity-40" />
+            <span>Ingecol S.A.S. · Puerto de Palermo — Barranquilla</span>
           </div>
           <span>Sistema de gestión de operaciones portuarias · {new Date().getFullYear()}</span>
         </div>
