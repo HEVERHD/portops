@@ -154,6 +154,7 @@ export function WorkersManager({
   const [cedula, setCedula]       = useState("")
   const [role, setRole]           = useState("")
   const [sigData, setSigData]     = useState<string | null>(null)
+  const [consented, setConsented] = useState(false)
   const [saving, setSaving]       = useState(false)
   const [error, setError]         = useState("")
   const [deletingId, setDeletingId]     = useState<string | null>(null)
@@ -161,11 +162,15 @@ export function WorkersManager({
   const [search, setSearch]       = useState("")
 
   function resetForm() {
-    setName(""); setCedula(""); setRole(""); setSigData(null); setError("")
+    setName(""); setCedula(""); setRole(""); setSigData(null); setConsented(false); setError("")
   }
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault()
+    if (sigData && !consented) {
+      setError("Debes confirmar el consentimiento del trabajador para guardar la firma")
+      return
+    }
     setSaving(true)
     setError("")
     try {
@@ -324,6 +329,36 @@ export function WorkersManager({
           </div>
 
           <SignatureCanvas value={sigData} onChange={setSigData} />
+
+          {/* Consentimiento — requerido si hay firma */}
+          {sigData && (
+            <label className="flex items-start gap-2.5 cursor-pointer group">
+              <div className="relative shrink-0 mt-0.5">
+                <input
+                  type="checkbox"
+                  checked={consented}
+                  onChange={(e) => setConsented(e.target.checked)}
+                  className="sr-only"
+                />
+                <div className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-colors
+                  ${consented
+                    ? "bg-orange-600 border-orange-500"
+                    : "border-slate-600 group-hover:border-orange-500/60"
+                  }`}
+                >
+                  {consented && (
+                    <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 10 8" fill="none">
+                      <path d="M1 4l3 3 5-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  )}
+                </div>
+              </div>
+              <span className="text-xs text-slate-400 leading-relaxed">
+                El trabajador autoriza el almacenamiento y uso de su firma digital en los formularios
+                de la operación portuaria, conforme a la política de gestión integrada.
+              </span>
+            </label>
+          )}
 
           {error && (
             <p className="text-xs text-red-400 bg-red-950/30 border border-red-800/40 rounded-lg px-3 py-2">

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { X, Search, Check, Users } from "lucide-react"
+import { X, Search, Users } from "lucide-react"
 
 export interface WorkerOption {
   id: string
@@ -17,16 +17,19 @@ interface WorkerPickerModalProps {
 }
 
 export function WorkerPickerModal({ onSelect, onClose }: WorkerPickerModalProps) {
-  const [workers, setWorkers]   = useState<WorkerOption[]>([])
-  const [loading, setLoading]   = useState(true)
-  const [search, setSearch]     = useState("")
-  const [selected, setSelected] = useState<string | null>(null)
+  const [workers, setWorkers] = useState<WorkerOption[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError]     = useState(false)
+  const [search, setSearch]   = useState("")
 
   useEffect(() => {
     fetch("/api/workers")
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error("error")
+        return r.json()
+      })
       .then((d) => setWorkers(d.workers ?? []))
-      .catch(() => {})
+      .catch(() => setError(true))
       .finally(() => setLoading(false))
   }, [])
 
@@ -43,17 +46,15 @@ export function WorkerPickerModal({ onSelect, onClose }: WorkerPickerModalProps)
       w.cedula.includes(search)
   )
 
-  const handleConfirm = () => {
-    const worker = workers.find((w) => w.id === selected)
-    if (worker) {
-      onSelect(worker)
-      onClose()
-    }
+  // Click en un trabajador → aplica inmediatamente y cierra
+  const handlePick = (worker: WorkerOption) => {
+    onSelect(worker)
+    onClose()
   }
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 p-4"
+      className="fixed inset-0 z-[9000] flex items-end sm:items-center justify-center bg-black/70 p-4"
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
     >
       <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-sm shadow-2xl flex flex-col max-h-[80vh]">
@@ -91,29 +92,32 @@ export function WorkerPickerModal({ onSelect, onClose }: WorkerPickerModalProps)
         <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-1">
           {loading ? (
             <p className="text-center text-xs text-slate-500 py-8">Cargando…</p>
+          ) : error ? (
+            <p className="text-center text-xs text-red-400 py-8">
+              Error al cargar trabajadores. Intenta de nuevo.
+            </p>
           ) : filtered.length === 0 ? (
             <p className="text-center text-xs text-slate-500 py-8">
               {workers.length === 0
-                ? "No hay trabajadores registrados"
-                : "Sin resultados"}
+                ? "No hay trabajadores en el banco. Agrégalos en la sección Trabajadores."
+                : "Sin resultados para esa búsqueda"}
             </p>
           ) : (
-            filtered.map((worker) => {
-              const isSelected = selected === worker.id
-              return (
+            <>
+              <p className="text-xs text-slate-500 pb-1">
+                Toca un trabajador para seleccionarlo
+              </p>
+              {filtered.map((worker) => (
                 <button
                   key={worker.id}
                   type="button"
-                  onClick={() => setSelected(isSelected ? null : worker.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left
-                              transition-all border
-                              ${isSelected
-                                ? "bg-orange-600/20 border-orange-500/50 text-white"
-                                : "border-slate-800 hover:bg-slate-800 text-slate-300"
-                              }`}
+                  onClick={() => handlePick(worker)}
+                  className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-left
+                             border border-slate-800 hover:border-orange-500/60
+                             hover:bg-orange-600/10 text-slate-300 transition-all active:scale-[0.98]"
                 >
                   {/* Firma / inicial */}
-                  <div className="w-9 h-9 bg-slate-800 rounded-lg flex items-center justify-center shrink-0 overflow-hidden border border-slate-700">
+                  <div className="w-10 h-10 bg-slate-800 rounded-lg flex items-center justify-center shrink-0 overflow-hidden border border-slate-700">
                     {worker.signatureData ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -122,43 +126,33 @@ export function WorkerPickerModal({ onSelect, onClose }: WorkerPickerModalProps)
                         className="w-full h-full object-contain p-0.5"
                       />
                     ) : (
-                      <span className="text-sm font-bold text-slate-400">
+                      <span className="text-base font-bold text-slate-400">
                         {worker.name.charAt(0).toUpperCase()}
                       </span>
                     )}
                   </div>
 
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{worker.name}</p>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-sm font-semibold text-white truncate">{worker.name}</p>
+                    <p className="text-xs text-slate-400">
                       CC {worker.cedula}
-                      {worker.role && <> · {worker.role}</>}
+                      {worker.role && <span className="text-slate-500"> · {worker.role}</span>}
                     </p>
                   </div>
-
-                  {isSelected && <Check className="w-4 h-4 text-orange-400 shrink-0" />}
                 </button>
-              )
-            })
+              ))}
+            </>
           )}
         </div>
 
         {/* Footer */}
-        <div className="flex gap-2 px-4 pb-4 pt-2 border-t border-slate-800 shrink-0">
+        <div className="px-4 pb-4 pt-2 border-t border-slate-800 shrink-0">
           <button
             onClick={onClose}
-            className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300
+            className="w-full bg-slate-800 hover:bg-slate-700 text-slate-300
                        font-medium py-2 rounded-xl text-sm transition-colors border border-slate-700"
           >
             Cancelar
-          </button>
-          <button
-            onClick={handleConfirm}
-            disabled={!selected}
-            className="flex-1 bg-orange-600 hover:bg-orange-500 disabled:opacity-40
-                       text-white font-medium py-2 rounded-xl text-sm transition-colors"
-          >
-            Seleccionar
           </button>
         </div>
       </div>

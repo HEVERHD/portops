@@ -269,8 +269,8 @@ export function TableForm({
                 <th className="px-3 py-2 text-left text-slate-500 font-medium w-10">#</th>
                 {/* Columna del selector de trabajador */}
                 {!readOnly && !isSigned && tableConfig.workerPickerKeys && (
-                  <th className="px-1 py-2 w-8" title="Seleccionar del banco de trabajadores">
-                    <UserRound className="w-3.5 h-3.5 text-slate-600 mx-auto" />
+                  <th className="px-1 py-2 text-xs text-slate-500 font-medium whitespace-nowrap">
+                    Banco
                   </th>
                 )}
                 {tableConfig.columns.map((col) => (
@@ -299,10 +299,14 @@ export function TableForm({
                       <button
                         type="button"
                         onClick={() => setPickerRowIdx(idx)}
-                        className="p-1 text-slate-500 hover:text-orange-400 transition-colors"
-                        title="Seleccionar trabajador"
+                        className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium
+                                   bg-orange-600/20 border border-orange-600/40 text-orange-400
+                                   hover:bg-orange-600/30 hover:border-orange-500 transition-colors
+                                   whitespace-nowrap"
+                        title="Seleccionar del banco de trabajadores"
                       >
-                        <UserRound className="w-3.5 h-3.5" />
+                        <UserRound className="w-3 h-3" />
+                        Banco
                       </button>
                     </td>
                   )}
