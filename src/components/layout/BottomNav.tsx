@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Ship, Anchor, ClipboardList } from "lucide-react"
+import { Ship, Anchor, ClipboardList, Users } from "lucide-react"
 import type { UserRole } from "@/generated/prisma/client"
 import { useLoading } from "@/contexts/LoadingContext"
 
@@ -23,6 +23,12 @@ const NAV_ITEMS = [
     href:  "/ships",
     label: "Naves",
     icon:  Anchor,
+    roles: ["ADMIN", "COORDINATOR"] as UserRole[],
+  },
+  {
+    href:  "/workers",
+    label: "Trabajadores",
+    icon:  Users,
     roles: ["ADMIN", "COORDINATOR"] as UserRole[],
   },
 ]

@@ -1,9 +1,11 @@
 "use client"
 
 import { useRef, useEffect, useState, useCallback } from "react"
-import { X, Trash2, Check } from "lucide-react"
+import { X, Trash2, Check, Users, ChevronDown } from "lucide-react"
 import type { SignatureRole } from "@/lib/form-definitions"
 import { DEFAULT_SIGNATURE_ROLES } from "@/lib/form-definitions"
+import type { WorkerOption } from "@/components/workers/WorkerPickerModal"
+import { WorkerPickerModal } from "@/components/workers/WorkerPickerModal"
 
 interface SignatureModalProps {
   formId: string
@@ -28,6 +30,26 @@ export function SignatureModal({
   const [sigType, setSigType] = useState<string>(roles[0]?.type ?? "OPERATOR")
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showWorkerPicker, setShowWorkerPicker] = useState(false)
+  const [selectedWorker, setSelectedWorker] = useState<WorkerOption | null>(null)
+
+  const loadWorkerSignature = useCallback((worker: WorkerOption) => {
+    setSelectedWorker(worker)
+    setShowWorkerPicker(false)
+    if (!worker.signatureData) return
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext("2d")
+    if (!ctx) return
+    const img = new Image()
+    img.onload = () => {
+      ctx.fillStyle = "#ffffff"
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+      setIsEmpty(false)
+    }
+    img.src = worker.signatureData
+  }, [])
 
   const canUseRole = (role: SignatureRole) => {
     if (!role.supervisorOnly) return true
@@ -150,6 +172,7 @@ export function SignatureModal({
   const gridCols = roles.length <= 2 ? "grid-cols-2" : roles.length === 3 ? "grid-cols-3" : "grid-cols-2"
 
   return (
+    <>
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 p-4">
       <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md shadow-2xl">
         {/* Header */}
@@ -191,9 +214,37 @@ export function SignatureModal({
           </div>
         </div>
 
+        {/* Trabajador del banco */}
+        <div className="px-4 pb-1">
+          <button
+            type="button"
+            onClick={() => setShowWorkerPicker(true)}
+            className="w-full flex items-center justify-between px-3 py-2 rounded-xl
+                       border border-slate-700 hover:border-orange-500/50 hover:bg-slate-800/60
+                       text-left transition-all group"
+          >
+            <div className="flex items-center gap-2">
+              <Users className="w-3.5 h-3.5 text-slate-500 group-hover:text-orange-400 transition-colors" />
+              {selectedWorker ? (
+                <span className="text-xs text-white font-medium">
+                  {selectedWorker.name}
+                  <span className="text-slate-400 font-normal ml-1">· CC {selectedWorker.cedula}</span>
+                </span>
+              ) : (
+                <span className="text-xs text-slate-400">Seleccionar del banco de trabajadores</span>
+              )}
+            </div>
+            <ChevronDown className="w-3.5 h-3.5 text-slate-500" />
+          </button>
+        </div>
+
         {/* Canvas */}
         <div className="px-4 pb-2">
-          <p className="text-xs text-slate-400 mb-2">Firma aquí</p>
+          <p className="text-xs text-slate-400 mb-2">
+            {selectedWorker?.signatureData
+              ? "Firma cargada — puedes modificarla dibujando"
+              : "Firma aquí"}
+          </p>
           <div className="rounded-xl overflow-hidden border border-slate-700 bg-white">
             <canvas
               ref={canvasRef}
@@ -245,5 +296,13 @@ export function SignatureModal({
         </div>
       </div>
     </div>
+
+    {showWorkerPicker && (
+      <WorkerPickerModal
+        onSelect={loadWorkerSignature}
+        onClose={() => setShowWorkerPicker(false)}
+      />
+    )}
+    </>
   )
 }

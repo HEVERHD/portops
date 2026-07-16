@@ -61,6 +61,15 @@ export interface TableHeaderField {
   span?: "half" | "full"
 }
 
+export interface WorkerPickerKeys {
+  /** Clave de columna que recibe el nombre del trabajador */
+  name: string
+  /** Clave de columna que recibe la cédula */
+  cedula: string
+  /** Clave de columna que recibe el cargo (opcional) */
+  role?: string
+}
+
 export interface TableConfig {
   headerFields: TableHeaderField[]
   columns: TableColumn[]
@@ -68,6 +77,8 @@ export interface TableConfig {
   observations?: boolean
   /** Texto informativo al pie del formulario */
   footerNote?: string
+  /** Si se define, habilita el selector de trabajador por fila */
+  workerPickerKeys?: WorkerPickerKeys
 }
 
 export interface FormDefinition {
@@ -370,6 +381,7 @@ export const FORM_DEFINITIONS: Record<FormType, FormDefinition> = {
         { key: "evaluacion",   label: "Evaluación",    type: "select",
           options: ["B", "M", "R"], width: "xs" },
       ],
+      workerPickerKeys: { name: "participante", cedula: "cedula", role: "cargo" },
       observations: true,
     },
   },
@@ -397,6 +409,7 @@ export const FORM_DEFINITIONS: Record<FormType, FormDefinition> = {
           options: ["NO", "SI"], width: "xs" },
         { key: "cual",          label: "¿Cuál?",             type: "text",   width: "md" },
       ],
+      workerPickerKeys: { name: "nombre", cedula: "cedula", role: "cargo" },
       footerNote: "Con mi firma dejo constancia de que recibí información sobre la política de gestión integrada, normas de seguridad, plan de emergencia, rutas de evacuación y riesgos a los que me encuentro expuesto durante mi estancia en las instalaciones de INGECOL S.A.S.",
     },
   },

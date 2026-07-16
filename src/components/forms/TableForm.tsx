@@ -1,10 +1,12 @@
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
-import { Plus, Trash2, CheckCircle2, Pen } from "lucide-react"
+import { Plus, Trash2, CheckCircle2, Pen, UserRound } from "lucide-react"
 import { SignatureModal } from "./SignatureModal"
 import type { TableConfig } from "@/lib/form-definitions"
 import { DEFAULT_SIGNATURE_ROLES } from "@/lib/form-definitions"
+import { WorkerPickerModal } from "@/components/workers/WorkerPickerModal"
+import type { WorkerOption } from "@/components/workers/WorkerPickerModal"
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -164,6 +166,25 @@ export function TableForm({
   const isComplete        = status === "COMPLETED" || isSigned
   const canAddSignature   = !readOnly && isComplete
 
+  // Worker picker
+  const [pickerRowIdx, setPickerRowIdx] = useState<number | null>(null)
+
+  const handleWorkerSelect = (worker: WorkerOption) => {
+    if (pickerRowIdx === null || !tableConfig.workerPickerKeys) return
+    const keys = tableConfig.workerPickerKeys
+    setData((d) => {
+      const rows = [...d.rows]
+      rows[pickerRowIdx] = {
+        ...rows[pickerRowIdx],
+        [keys.name]:  worker.name,
+        [keys.cedula]: worker.cedula,
+        ...(keys.role && worker.role ? { [keys.role]: worker.role } : {}),
+      }
+      return { ...d, rows }
+    })
+    setPickerRowIdx(null)
+  }
+
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <div className="space-y-4">
@@ -246,6 +267,12 @@ export function TableForm({
             <thead>
               <tr className="border-t border-slate-800 bg-slate-950/50">
                 <th className="px-3 py-2 text-left text-slate-500 font-medium w-10">#</th>
+                {/* Columna del selector de trabajador */}
+                {!readOnly && !isSigned && tableConfig.workerPickerKeys && (
+                  <th className="px-1 py-2 w-8" title="Seleccionar del banco de trabajadores">
+                    <UserRound className="w-3.5 h-3.5 text-slate-600 mx-auto" />
+                  </th>
+                )}
                 {tableConfig.columns.map((col) => (
                   <th
                     key={col.key}
@@ -266,6 +293,19 @@ export function TableForm({
                   className="border-t border-slate-800/60 hover:bg-slate-800/20"
                 >
                   <td className="px-3 py-1.5 text-slate-500">{idx + 1}</td>
+                  {/* Botón selector de trabajador por fila */}
+                  {!readOnly && !isSigned && tableConfig.workerPickerKeys && (
+                    <td className="px-1 py-1">
+                      <button
+                        type="button"
+                        onClick={() => setPickerRowIdx(idx)}
+                        className="p-1 text-slate-500 hover:text-orange-400 transition-colors"
+                        title="Seleccionar trabajador"
+                      >
+                        <UserRound className="w-3.5 h-3.5" />
+                      </button>
+                    </td>
+                  )}
                   {tableConfig.columns.map((col) => (
                     <td key={col.key} className={`px-1.5 py-1 ${colWidth(col.width)}`}>
                       {col.type === "select" ? (
@@ -391,6 +431,14 @@ export function TableForm({
             </button>
           )}
         </div>
+      )}
+
+      {/* ── Modal selector de trabajador ── */}
+      {pickerRowIdx !== null && (
+        <WorkerPickerModal
+          onSelect={handleWorkerSelect}
+          onClose={() => setPickerRowIdx(null)}
+        />
       )}
 
       {/* ── Modal de firma ── */}
