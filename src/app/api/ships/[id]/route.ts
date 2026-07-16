@@ -17,20 +17,13 @@ export async function DELETE(
 
   const ship = await prisma.ship.findFirst({
     where: { id, organizationId: session.user.organizationId },
-    include: { _count: { select: { operations: true } } },
   })
 
   if (!ship) {
     return Response.json({ error: "Barco no encontrado" }, { status: 404 })
   }
 
-  if (ship._count.operations > 0) {
-    return Response.json(
-      { error: "No se puede eliminar una nave con operaciones registradas" },
-      { status: 409 }
-    )
-  }
-
+  // Cascade eliminará todas las operaciones y sus datos asociados
   await prisma.ship.delete({ where: { id } })
 
   return Response.json({ success: true })

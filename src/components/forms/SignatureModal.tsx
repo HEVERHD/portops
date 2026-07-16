@@ -2,35 +2,44 @@
 
 import { useRef, useEffect, useState, useCallback } from "react"
 import { X, Trash2, Check } from "lucide-react"
+import type { SignatureRole } from "@/lib/form-definitions"
+import { DEFAULT_SIGNATURE_ROLES } from "@/lib/form-definitions"
 
 interface SignatureModalProps {
   formId: string
   operationId: string
   userRole: string
+  roles?: SignatureRole[]
   onClose: () => void
   onSigned: () => void
 }
 
-type SignatureType = "OPERATOR" | "SUPERVISOR"
-
 export function SignatureModal({
   formId,
-  operationId,
+  operationId: _operationId,
   userRole,
+  roles = DEFAULT_SIGNATURE_ROLES,
   onClose,
   onSigned,
 }: SignatureModalProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [isDrawing, setIsDrawing] = useState(false)
   const [isEmpty, setIsEmpty] = useState(true)
-  const [sigType, setSigType] = useState<SignatureType>("OPERATOR")
+  const [sigType, setSigType] = useState<string>(roles[0]?.type ?? "OPERATOR")
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const canSign = (type: SignatureType) => {
-    if (type === "OPERATOR") return true
+  const canUseRole = (role: SignatureRole) => {
+    if (!role.supervisorOnly) return true
     return ["ADMIN", "COORDINATOR", "FIELD_SUPERVISOR"].includes(userRole)
   }
+
+  // Set default to first available role
+  useEffect(() => {
+    const first = roles.find(canUseRole)
+    if (first) setSigType(first.type)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Inicializar canvas con fondo blanco
   useEffect(() => {
@@ -105,8 +114,10 @@ export function SignatureModal({
   const handleConfirm = async () => {
     const canvas = canvasRef.current
     if (!canvas || isEmpty) return
-    if (!canSign(sigType)) {
-      setError("No tienes permisos para firmar como supervisor")
+
+    const selectedRole = roles.find((r) => r.type === sigType)
+    if (!selectedRole || !canUseRole(selectedRole)) {
+      setError("No tienes permisos para firmar con este rol")
       return
     }
 
@@ -135,6 +146,9 @@ export function SignatureModal({
     }
   }
 
+  // Grid columns based on number of roles
+  const gridCols = roles.length <= 2 ? "grid-cols-2" : roles.length === 3 ? "grid-cols-3" : "grid-cols-2"
+
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/70 p-4">
       <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-md shadow-2xl">
@@ -152,24 +166,28 @@ export function SignatureModal({
         {/* Tipo de firma */}
         <div className="px-4 pt-4 pb-2">
           <p className="text-xs text-slate-400 mb-2">Tipo de firma</p>
-          <div className="grid grid-cols-2 gap-2">
-            {(["OPERATOR", "SUPERVISOR"] as SignatureType[]).map((t) => (
-              <button
-                key={t}
-                onClick={() => setSigType(t)}
-                disabled={!canSign(t)}
-                className={`py-2 px-3 rounded-xl text-xs font-medium border transition-all
-                  ${!canSign(t) ? "opacity-30 cursor-not-allowed border-slate-700 text-slate-500" : ""}
-                  ${sigType === t && canSign(t)
-                    ? "bg-blue-600 border-blue-500 text-white"
-                    : canSign(t)
-                      ? "border-slate-700 text-slate-300 hover:border-slate-600"
-                      : ""
-                  }`}
-              >
-                {t === "OPERATOR" ? "Operador" : "Supervisor"}
-              </button>
-            ))}
+          <div className={`grid ${gridCols} gap-2`}>
+            {roles.map((role) => {
+              const enabled = canUseRole(role)
+              const selected = sigType === role.type
+              return (
+                <button
+                  key={role.type}
+                  onClick={() => enabled && setSigType(role.type)}
+                  disabled={!enabled}
+                  className={`py-2 px-3 rounded-xl text-xs font-medium border transition-all text-center
+                    ${!enabled ? "opacity-30 cursor-not-allowed border-slate-700 text-slate-500" : ""}
+                    ${selected && enabled
+                      ? "bg-blue-600 border-blue-500 text-white"
+                      : enabled
+                        ? "border-slate-700 text-slate-300 hover:border-slate-600"
+                        : ""
+                    }`}
+                >
+                  {role.label}
+                </button>
+              )
+            })}
           </div>
         </div>
 

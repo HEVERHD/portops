@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react"
 import { Plus, Trash2, CheckCircle2, Pen, GripVertical } from "lucide-react"
 import { SignatureModal } from "./SignatureModal"
+import { DEFAULT_SIGNATURE_ROLES } from "@/lib/form-definitions"
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -447,17 +448,18 @@ export function ATSForm({
 
   const handleSigned = async () => {
     setShowSignModal(false)
-    setStatus("SIGNED")
     try {
       const res = await fetch(`/api/forms/${formId}`)
       if (res.ok) {
         const json = await res.json()
         setSigs(json.formInstance.signatures)
+        setStatus(json.formInstance.status)
       }
     } catch { /* silencioso */ }
   }
 
   const isReadOnly = readOnly || status === "SIGNED"
+  const canAddSignature = !readOnly && (status === "COMPLETED" || status === "SIGNED")
 
   return (
     <>
@@ -655,15 +657,17 @@ export function ATSForm({
       )}
 
       {/* ── Footer de acciones ────────────────────────────────── */}
-      {!isReadOnly && (
+      {(!isReadOnly || canAddSignature) && (
         <div className="pt-4 border-t border-slate-800 space-y-3">
-          <div className="h-4 text-center">
-            {saveState === "saving" && <p className="text-xs text-slate-500">Guardando…</p>}
-            {saveState === "saved"  && <p className="text-xs text-green-500">Guardado</p>}
-            {saveState === "error"  && <p className="text-xs text-red-400">Error al guardar</p>}
-          </div>
+          {!isReadOnly && (
+            <div className="h-4 text-center">
+              {saveState === "saving" && <p className="text-xs text-slate-500">Guardando…</p>}
+              {saveState === "saved"  && <p className="text-xs text-green-500">Guardado</p>}
+              {saveState === "error"  && <p className="text-xs text-red-400">Error al guardar</p>}
+            </div>
+          )}
 
-          {status !== "COMPLETED" && (
+          {!isReadOnly && status !== "COMPLETED" && status !== "SIGNED" && (
             <>
               {completeError && (
                 <p className="text-xs text-red-400 text-center">{completeError}</p>
@@ -686,7 +690,7 @@ export function ATSForm({
             </>
           )}
 
-          {status === "COMPLETED" && (
+          {canAddSignature && (
             <button
               onClick={() => setShowSignModal(true)}
               className="w-full flex items-center justify-center gap-2 py-3 rounded-xl
@@ -694,7 +698,7 @@ export function ATSForm({
                          transition-all"
             >
               <Pen className="w-4 h-4" />
-              Firmar ATS
+              Agregar firma
             </button>
           )}
         </div>
@@ -705,6 +709,7 @@ export function ATSForm({
           formId={formId}
           operationId={operationId}
           userRole={userRole}
+          roles={DEFAULT_SIGNATURE_ROLES}
           onClose={() => setShowSignModal(false)}
           onSigned={handleSigned}
         />

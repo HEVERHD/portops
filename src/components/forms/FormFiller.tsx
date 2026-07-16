@@ -2,8 +2,15 @@
 
 import { useState, useEffect, useRef } from "react"
 import { CheckCircle2, XCircle, Circle, MinusCircle, ChevronDown, ChevronUp, Pen } from "lucide-react"
-import type { FormDefinition, FormItem } from "@/lib/form-definitions"
+import type { FormDefinition, FormItem, SignatureRole } from "@/lib/form-definitions"
+import { FORM_SIGNATURE_ROLES, DEFAULT_SIGNATURE_ROLES } from "@/lib/form-definitions"
 import { SignatureModal } from "./SignatureModal"
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+function getRoleLabel(type: string, roles: SignatureRole[]): string {
+  return roles.find((r) => r.type === type)?.label ?? type
+}
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -183,6 +190,7 @@ function ChecklistItem({
 export function FormFiller({
   formId,
   operationId,
+  formType,
   definition,
   initialResponses,
   initialStatus,
@@ -297,17 +305,21 @@ export function FormFiller({
 
   const handleSigned = async () => {
     setShowSignModal(false)
-    setStatus("SIGNED")
     try {
       const res = await fetch(`/api/forms/${formId}`)
       if (res.ok) {
         const data = await res.json()
         setSigs(data.formInstance.signatures)
+        setStatus(data.formInstance.status)
       }
     } catch { /* silencioso */ }
   }
 
   const isReadOnly = readOnly || status === "SIGNED"
+  // Allow adding signatures even after SIGNED (multi-signature forms)
+  const canAddSignature = !readOnly && (status === "COMPLETED" || status === "SIGNED")
+  const signatureRoles: SignatureRole[] =
+    (FORM_SIGNATURE_ROLES as Record<string, SignatureRole[]>)[formType] ?? DEFAULT_SIGNATURE_ROLES
 
   return (
     <>
@@ -378,7 +390,7 @@ export function FormFiller({
                 <div>
                   <p className="text-xs font-medium text-slate-300">{sig.signedBy.name}</p>
                   <p className="text-xs text-slate-500">
-                    {sig.type === "OPERATOR" ? "Operador" : "Supervisor"} ·{" "}
+                    {getRoleLabel(sig.type, signatureRoles)} ·{" "}
                     {new Date(sig.signedAt).toLocaleString("es-CO", { timeZone: "America/Bogota" })}
                   </p>
                 </div>
@@ -390,17 +402,19 @@ export function FormFiller({
       )}
 
       {/* Footer de acciones */}
-      {!isReadOnly && (
+      {(!isReadOnly || canAddSignature) && (
         <div className="mt-6 pt-4 border-t border-slate-800 space-y-3">
-          {/* Indicador de guardado */}
-          <div className="h-4 text-center">
-            {saveState === "saving" && <p className="text-xs text-slate-500">Guardando…</p>}
-            {saveState === "saved"  && <p className="text-xs text-green-500">Guardado</p>}
-            {saveState === "error"  && <p className="text-xs text-red-400">Error al guardar</p>}
-          </div>
+          {/* Indicador de guardado (solo cuando editable) */}
+          {!isReadOnly && (
+            <div className="h-4 text-center">
+              {saveState === "saving" && <p className="text-xs text-slate-500">Guardando…</p>}
+              {saveState === "saved"  && <p className="text-xs text-green-500">Guardado</p>}
+              {saveState === "error"  && <p className="text-xs text-red-400">Error al guardar</p>}
+            </div>
+          )}
 
           {/* Completar */}
-          {status !== "COMPLETED" && (
+          {!isReadOnly && status !== "COMPLETED" && status !== "SIGNED" && (
             <>
               {completeError && (
                 <p className="text-xs text-red-400 text-center">{completeError}</p>
@@ -421,8 +435,8 @@ export function FormFiller({
             </>
           )}
 
-          {/* Firmar */}
-          {status === "COMPLETED" && (
+          {/* Firmar — disponible para COMPLETED y SIGNED (multi-firma) */}
+          {canAddSignature && (
             <button
               onClick={() => setShowSignModal(true)}
               className="w-full flex items-center justify-center gap-2 py-3 rounded-xl
@@ -430,7 +444,7 @@ export function FormFiller({
                          transition-all"
             >
               <Pen className="w-4 h-4" />
-              Firmar formulario
+              Agregar firma
             </button>
           )}
         </div>
@@ -441,6 +455,7 @@ export function FormFiller({
           formId={formId}
           operationId={operationId}
           userRole={userRole}
+          roles={signatureRoles}
           onClose={() => setShowSignModal(false)}
           onSigned={handleSigned}
         />

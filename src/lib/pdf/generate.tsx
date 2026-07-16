@@ -19,6 +19,7 @@ interface ResponseRecord {
 interface SignatureRecord {
   id: string
   type: string
+  signatureData?: string | null
   signedBy: { name: string }
   signedAt: Date
 }
@@ -149,13 +150,31 @@ function OpInfo({ input }: { input: FormPDFInput }) {
 
 // ─── Firmas ───────────────────────────────────────────────────────────────────
 
-function SignaturesSection({
-  signatures,
-}: {
-  signatures: SignatureRecord[]
-}) {
-  const typeLabel: Record<string, string> = {
-    OPERATOR: "Operario", SUPERVISOR: "Supervisor", COORDINATOR: "Coordinador",
+const SIG_TYPE_LABEL: Record<string, string> = {
+  OPERATOR:           "Operario / Ejecutor",
+  SUPERVISOR:         "Supervisor HSE",
+  COORDINATOR:        "Coordinador",
+  SOLICITANTE:        "Solicitante",
+  TRABAJADOR:         "Trabajador",
+  SUPERVISOR_TRABAJO: "Supervisor de Trabajo",
+  SUPERVISOR_SST:     "Supervisor SST",
+  RESCATADOR:         "Rescatador",
+  GRUERO:             "Grúero",
+  SENALERO:           "Señalero",
+  INSPECTOR:          "Inspector",
+  JEFE_OPERACIONES:   "Jefe de Operaciones",
+}
+
+function SignaturesSection({ signatures }: { signatures: SignatureRecord[] }) {
+  const emptyCells = signatures.length === 0
+    ? ["Operario / Ejecutor", "Supervisor HSE", "Coordinador"]
+    : []
+
+  const cells = emptyCells.length > 0 ? emptyCells : signatures.map((_, i) => i)
+  const perRow = 3
+  const rows: (string | number)[][] = []
+  for (let i = 0; i < cells.length; i += perRow) {
+    rows.push(cells.slice(i, i + perRow))
   }
 
   return (
@@ -163,40 +182,44 @@ function SignaturesSection({
       <View style={S.signaturesHeader}>
         <Text style={S.signaturesHeaderText}>Firmas y Autorizaciones</Text>
       </View>
-      <View style={S.signaturesRow}>
-        {signatures.length === 0 ? (
-          // Celdas vacías para firma manual si no hay firmas digitales
-          <>
-            {["Operario / Ejecutor", "Supervisor HSE", "Coordinador"].map((role, i) => (
-              <View
-                key={role}
-                style={i < 2 ? S.signatureCell : S.signatureCellLast}
-              >
-                <View style={S.signatureLine} />
-                <Text style={S.signatureRole}>{role}</Text>
-              </View>
-            ))}
-          </>
-        ) : (
-          signatures.map((sig, i) => (
-            <View
-              key={sig.id}
-              style={i < signatures.length - 1 ? S.signatureCell : S.signatureCellLast}
-            >
-              <View style={S.signatureLine}>
-                <Text style={{ fontSize: 6, color: "#15803d" }}>✓ Firmado digitalmente</Text>
-              </View>
-              <Text style={S.signatureName}>{sig.signedBy.name}</Text>
-              <Text style={S.signatureRole}>
-                {typeLabel[sig.type] ?? sig.type}
-              </Text>
-              <Text style={S.signatureDate}>
-                {fmtDate(sig.signedAt)} {fmtTime(sig.signedAt)}
-              </Text>
-            </View>
-          ))
-        )}
-      </View>
+
+      {rows.map((row, rowIdx) => (
+        <View key={rowIdx} style={S.signaturesRow}>
+          {emptyCells.length > 0
+            // Celdas vacías para firma manual
+            ? (row as string[]).map((role, i) => (
+                <View key={role} style={i < row.length - 1 ? S.signatureCell : S.signatureCellLast}>
+                  <View style={S.signatureLine} />
+                  <Text style={S.signatureRole}>{role}</Text>
+                </View>
+              ))
+            // Firmas digitales con imagen
+            : (row as number[]).map((idx, i) => {
+                const sig = signatures[idx]
+                return (
+                  <View key={sig.id} style={i < row.length - 1 ? S.signatureCell : S.signatureCellLast}>
+                    {/* Imagen de firma o placeholder */}
+                    {sig.signatureData ? (
+                      <PDFImage
+                        src={sig.signatureData}
+                        style={{ width: "100%", height: 44, objectFit: "contain" }}
+                      />
+                    ) : (
+                      <View style={[S.signatureLine, { height: 44, justifyContent: "center" }]}>
+                        <Text style={{ fontSize: 6, color: "#15803d", textAlign: "center" }}>
+                          ✓ Firmado digitalmente
+                        </Text>
+                      </View>
+                    )}
+                    <Text style={S.signatureName}>{sig.signedBy.name}</Text>
+                    <Text style={S.signatureRole}>{SIG_TYPE_LABEL[sig.type] ?? sig.type}</Text>
+                    <Text style={S.signatureDate}>{fmtDate(sig.signedAt)} {fmtTime(sig.signedAt)}</Text>
+                  </View>
+                )
+              })
+          }
+        </View>
+      ))}
     </View>
   )
 }

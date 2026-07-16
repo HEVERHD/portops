@@ -281,7 +281,7 @@ export function ShipsManager({ initialShips, canManage = false }: { initialShips
                   </p>
                 </div>
 
-                {canManage && ship._count.operations === 0 && (
+                {canManage && (
                   <button
                     onClick={() => setConfirmDeleteId(ship.id)}
                     disabled={deletingId === ship.id}
@@ -302,7 +302,7 @@ export function ShipsManager({ initialShips, canManage = false }: { initialShips
       <ConfirmModal
         open={confirmDeleteId !== null}
         title="¿Eliminar esta nave?"
-        description="Se eliminará permanentemente. Solo es posible si no tiene operaciones registradas."
+        description="Se eliminará permanentemente junto con todas sus operaciones y formularios asociados. Esta acción no se puede deshacer."
         confirmLabel="Sí, eliminar"
         dangerous
         loading={deletingId !== null}

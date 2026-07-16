@@ -26,7 +26,10 @@ export async function GET(
       filledBy:   { select: { id: true, name: true } },
       supervisor: { select: { id: true, name: true } },
       signatures: {
-        include: { signedBy: { select: { id: true, name: true } } },
+        select: {
+          id: true, type: true, signatureData: true, signedAt: true,
+          signedBy: { select: { id: true, name: true } },
+        },
         orderBy: { signedAt: "asc" },
       },
       responses: { orderBy: { createdAt: "asc" } },

@@ -70,27 +70,43 @@ model Organization {
   users      User[]
   ships      Ship[]
   operations Operation[]
+  workers    Worker[]
 }
 
 // ─── Usuarios ─────────────────────────────────────────────────────────────────
 
 model User {
-  id             String       @id @default(cuid())
-  email          String       @unique
-  name           String
-  passwordHash   String
-  role           UserRole
-  active         Boolean      @default(true)
-  organizationId String
-  organization   Organization @relation(fields: [organizationId], references: [id])
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  id                String       @id @default(cuid())
+  email             String       @unique
+  name              String
+  passwordHash      String
+  role              UserRole
+  active            Boolean      @default(true)
+  organizationId    String
+  organization      Organization @relation(fields: [organizationId], references: [id])
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
 
   filledForms     FormInstance[] @relation("FilledBy")
   supervisedForms FormInstance[] @relation("SupervisedBy")
   formPhotos      FormPhoto[]    @relation("UploadedPhotos")
   photos          Photo[]
   signatures      Signature[]
+}
+
+// ─── Banco de trabajadores de campo ──────────────────────────────────────────
+// Personas que firman formularios pero no tienen acceso al sistema
+model Worker {
+  id                String       @id @default(cuid())
+  name              String
+  cedula            String
+  role              String?      // cargo/labor
+  signatureData     String?      @db.Text // base64 del canvas de firma
+  organizationId    String
+  organization      Organization @relation(fields: [organizationId], references: [id])
+  active            Boolean      @default(true)
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
 }
 
 // ─── Barcos ───────────────────────────────────────────────────────────────────
@@ -117,7 +133,7 @@ model Operation {
   status         OperationStatus @default(OPEN)
   notes          String?
   shipId         String
-  ship           Ship            @relation(fields: [shipId], references: [id])
+  ship           Ship            @relation(fields: [shipId], references: [id], onDelete: Cascade)
   organizationId String
   organization   Organization    @relation(fields: [organizationId], references: [id])
   createdAt      DateTime        @default(now())

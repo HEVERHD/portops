@@ -62,9 +62,8 @@ export default async function OperationDetailPage(
           Volver a operaciones
         </Link>
 
-        {/* Eliminar solo si está OPEN y sin formularios diligenciados */}
-        {session.user.role !== "CLIENT" &&
-         session.user.role !== "FIELD_SUPERVISOR" &&
+        {/* Eliminar solo si es COORDINATOR, OPEN y sin formularios diligenciados */}
+        {session.user.role === "COORDINATOR" &&
          operation.status === "OPEN" &&
          operation.formInstances.every((f) => f.status === "PENDING") && (
           <DeleteOperationButton operationId={operation.id} />

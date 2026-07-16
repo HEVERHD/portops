@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react"
 import { Plus, Trash2, CheckCircle2, Pen } from "lucide-react"
 import { SignatureModal } from "./SignatureModal"
 import type { TableConfig } from "@/lib/form-definitions"
+import { DEFAULT_SIGNATURE_ROLES } from "@/lib/form-definitions"
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
@@ -159,8 +160,9 @@ export function TableForm({
     }
   }
 
-  const isSigned   = status === "SIGNED"
-  const isComplete = status === "COMPLETED" || isSigned
+  const isSigned          = status === "SIGNED"
+  const isComplete        = status === "COMPLETED" || isSigned
+  const canAddSignature   = !readOnly && isComplete
 
   // ── Render ─────────────────────────────────────────────────────────────────
   return (
@@ -358,13 +360,13 @@ export function TableForm({
       )}
 
       {/* ── Acciones ── */}
-      {!readOnly && !isSigned && (
+      {(!readOnly || canAddSignature) && (
         <div className="space-y-2 pb-4">
           {completeErr && (
             <p className="text-xs text-red-400 text-center">{completeErr}</p>
           )}
 
-          {!isComplete && (
+          {!readOnly && !isComplete && (
             <button
               onClick={handleComplete}
               disabled={completing || data.rows.length === 0}
@@ -377,7 +379,7 @@ export function TableForm({
             </button>
           )}
 
-          {isComplete && (
+          {canAddSignature && (
             <button
               onClick={() => setShowSign(true)}
               className="w-full flex items-center justify-center gap-2 bg-green-700
@@ -385,7 +387,7 @@ export function TableForm({
                          transition-colors text-sm"
             >
               <Pen className="w-4 h-4" />
-              Firmar formulario
+              Agregar firma
             </button>
           )}
         </div>
@@ -397,10 +399,18 @@ export function TableForm({
           formId={formId}
           operationId={operationId}
           userRole={userRole}
+          roles={DEFAULT_SIGNATURE_ROLES}
           onClose={() => setShowSign(false)}
-          onSigned={() => {
-            setStatus("SIGNED")
+          onSigned={async () => {
             setShowSign(false)
+            try {
+              const res = await fetch(`/api/forms/${formId}`)
+              if (res.ok) {
+                const json = await res.json()
+                setSignatures(json.formInstance.signatures)
+                setStatus(json.formInstance.status)
+              }
+            } catch { /* silencioso */ }
           }}
         />
       )}

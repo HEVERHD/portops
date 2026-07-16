@@ -1,5 +1,35 @@
 import type { FormType } from "@/generated/prisma/client"
 
+// ─── Roles de firma por formulario ───────────────────────────────────────────
+
+export interface SignatureRole {
+  type: string
+  label: string
+  /** Solo pueden seleccionar este rol usuarios con rol FIELD_SUPERVISOR, COORDINATOR o ADMIN */
+  supervisorOnly: boolean
+}
+
+export const DEFAULT_SIGNATURE_ROLES: SignatureRole[] = [
+  { type: "OPERATOR",   label: "Operador / Ejecutor", supervisorOnly: false },
+  { type: "SUPERVISOR", label: "Supervisor",           supervisorOnly: true },
+]
+
+export const FORM_SIGNATURE_ROLES: Partial<Record<FormType, SignatureRole[]>> = {
+  PERMISO_ALTURAS: [
+    { type: "SOLICITANTE",        label: "Solicitante",           supervisorOnly: false },
+    { type: "TRABAJADOR",         label: "Trabajador",            supervisorOnly: false },
+    { type: "SUPERVISOR_TRABAJO", label: "Supervisor de Trabajo", supervisorOnly: true },
+    { type: "SUPERVISOR_SST",     label: "Supervisor SST/HSE",    supervisorOnly: true },
+    { type: "RESCATADOR",         label: "Rescatador",            supervisorOnly: false },
+  ],
+  PLAN_IZAJE: [
+    { type: "GRUERO",           label: "Grúero",              supervisorOnly: false },
+    { type: "SENALERO",         label: "Señalero",            supervisorOnly: false },
+    { type: "INSPECTOR",        label: "Inspector HSE",       supervisorOnly: true },
+    { type: "JEFE_OPERACIONES", label: "Jefe de Operaciones", supervisorOnly: true },
+  ],
+}
+
 export interface FormItem {
   code: string
   label: string
@@ -451,7 +481,7 @@ export const FORM_DEFINITIONS: Record<FormType, FormDefinition> = {
 
   // ─── Plan de Izaje ────────────────────────────────────────────────────────
   PLAN_IZAJE: {
-    formCode: "F-GI-PIZ",
+    formCode: "F-GI-96",
     title: "Plan de Izaje",
     labels: { cumple: "Cumple", noCumple: "NC", na: "N/A" },
     sections: [

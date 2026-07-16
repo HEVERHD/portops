@@ -2,7 +2,7 @@ import { auth } from "@auth"
 import { prisma } from "@/lib/prisma"
 
 // POST /api/forms/[formId]/sign
-// Registra la firma (operador o supervisor) y transiciona a SIGNED
+// Registra la firma con el tipo indicado y transiciona a SIGNED (acepta múltiples firmas)
 export async function POST(
   request: Request,
   { params }: { params: Promise<{ formId: string }> }
@@ -13,7 +13,7 @@ export async function POST(
   const { formId } = await params
   const body = await request.json()
   const { type, signatureData } = body as {
-    type: "OPERATOR" | "SUPERVISOR"
+    type: string
     signatureData: string
   }
 
@@ -21,7 +21,7 @@ export async function POST(
     return Response.json({ error: "Tipo y datos de firma requeridos" }, { status: 400 })
   }
 
-  if (!["OPERATOR", "SUPERVISOR"].includes(type)) {
+  if (typeof type !== "string" || type.trim().length === 0) {
     return Response.json({ error: "Tipo de firma inválido" }, { status: 400 })
   }
 

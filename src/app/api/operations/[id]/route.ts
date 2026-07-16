@@ -8,8 +8,8 @@ export async function DELETE(
   const session = await auth()
   if (!session) return Response.json({ error: "No autorizado" }, { status: 401 })
 
-  if (!["ADMIN", "COORDINATOR"].includes(session.user.role)) {
-    return Response.json({ error: "Sin permisos" }, { status: 403 })
+  if (session.user.role !== "COORDINATOR") {
+    return Response.json({ error: "Solo el coordinador puede eliminar operaciones" }, { status: 403 })
   }
 
   const { id } = await ctx.params
